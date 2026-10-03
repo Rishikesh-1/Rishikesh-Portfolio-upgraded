@@ -1,0 +1,27 @@
+# ============================================================
+# CRITICAL SECURITY FILE — do not delete.
+# This is what stops an uploaded "image.php" from ever running.
+# ============================================================
+
+# Block execution of any script-like file in this folder, whatever its extension.
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|pl|py|jsp|asp|aspx|sh|cgi|exe|js)$">
+  Require all denied
+</FilesMatch>
+
+# Belt-and-braces for older Apache (mod_access_compat) setups:
+<IfModule !mod_authz_core.c>
+  <FilesMatch "\.(php|php3|php4|php5|php7|phtml|pl|py|jsp|asp|aspx|sh|cgi|exe|js)$">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+# Never let PHP execute here even if a misconfigured handler tries to.
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+
+Options -Indexes -ExecCGI

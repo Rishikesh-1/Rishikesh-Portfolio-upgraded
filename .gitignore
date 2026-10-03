@@ -1,0 +1,5 @@
+/config/db.php
+/uploads/*
+!/uploads/.htaccess
+!/uploads/.gitkeep
+/.qodo/
