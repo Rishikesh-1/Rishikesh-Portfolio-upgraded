@@ -1,7 +1,7 @@
 <?php
 /**
  * media.php — Media Library management page and API endpoint.
- * Browse, upload, and manage images stored in uploads/ directory.
+ * Browse, reuse, and manage uploaded images across blog posts and projects.
  */
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../includes/functions.php';
@@ -82,7 +82,7 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $uploadFile = $_FILES['media_file'] ?? ($_FILES['image'] ?? null);
+    $uploadFile = $_FILES['media_file'] ?? ($_FILES['image'] ?? ($_FILES['standalone_upload'] ?? null));
     if (!$uploadFile || !is_array($uploadFile)) {
         http_response_code(400);
         echo json_encode(['success' => false, 'error' => 'No image was selected for upload.']);
@@ -148,7 +148,7 @@ if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $rawFilename = trim($_POST['filename'] ?? '');
+    $rawFilename = trim($_POST['filename'] ?? ($_POST['delete_file'] ?? ''));
     $filename = basename($rawFilename);
     if ($filename === '' || !is_file(UPLOAD_DIR . $filename)) {
         http_response_code(404);
@@ -166,7 +166,7 @@ $pageNotice = '';
 $pageError = '';
 
 // Handle standard HTML form upload fallback
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['standalone_upload'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['standalone_upload']) && $action !== 'upload') {
     verify_csrf();
     try {
         $uploaded = handle_image_upload($_FILES['standalone_upload'], 'Image');
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['standalone_upload'])
 }
 
 // Handle standard HTML form delete fallback
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_file'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_file']) && $action !== 'delete') {
     verify_csrf();
     $targetFile = basename(trim($_POST['delete_file']));
     if ($targetFile !== '' && is_file(UPLOAD_DIR . $targetFile)) {
@@ -198,62 +198,100 @@ $active = 'media';
 require __DIR__ . '/includes/admin-header.php';
 ?>
 
-<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:var(--space-3);">
-  <div>
-    <h1 class="display" style="font-size:1.6rem;margin-bottom:4px;">Media Library</h1>
-    <p style="color:var(--text-muted);font-size:0.88rem;margin:0;">
-      Browse, reuse, and manage uploaded images across your blog posts and projects (<?= count($mediaItems) ?> images &bull; <?= $totalSizeFormatted ?>).
-    </p>
+<div style="margin-bottom:24px;">
+  <h1 class="display" style="font-size:1.75rem;margin-bottom:6px;">Media Library</h1>
+  <p style="color:var(--text-muted);font-size:0.9rem;margin:0;">
+    Manage, reuse, and insert uploaded photos into your blog posts and projects.
+  </p>
+  <div class="media-stats-bar">
+    <span class="media-stat-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--accent);"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <strong><?= count($mediaItems) ?></strong> images
+    </span>
+    <span class="media-stat-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--accent);"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <strong><?= $totalSizeFormatted ?></strong> used
+    </span>
+    <span class="media-stat-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--accent);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Max 10MB per file
+    </span>
   </div>
 </div>
 
 <?php if ($pageNotice): ?>
-  <div class="alert alert-success" style="margin-bottom:18px;"><?= e($pageNotice) ?></div>
+  <div class="alert alert-success" style="margin-bottom:20px;"><?= e($pageNotice) ?></div>
 <?php endif; ?>
 <?php if ($pageError): ?>
-  <div class="alert alert-error" style="margin-bottom:18px;"><?= e($pageError) ?></div>
+  <div class="alert alert-error" style="margin-bottom:20px;"><?= e($pageError) ?></div>
 <?php endif; ?>
 
-<!-- Standalone Upload Card -->
-<div class="admin-card" style="margin-bottom:24px;">
-  <form method="POST" enctype="multipart/form-data" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <?= csrf_field() ?>
-    <label style="font-weight:600;font-size:0.9rem;margin:0;">Upload new image:</label>
-    <input type="file" name="standalone_upload" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" required style="max-width:320px;">
-    <button type="submit" class="btn btn-primary btn-sm">Upload to Library</button>
-    <span style="font-size:0.8rem;color:var(--text-muted);">(Max 10MB &bull; JPG, PNG, WEBP, SVG, GIF)</span>
-  </form>
-</div>
+<!-- Drag & Drop Upload Zone -->
+<form method="POST" enctype="multipart/form-data" id="media-standalone-form">
+  <?= csrf_field() ?>
+  <div class="media-upload-zone" id="media-drop-zone" onclick="document.getElementById('media-file-input').click()">
+    <input type="file" name="standalone_upload" id="media-file-input" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" style="display:none;" onchange="handleDirectUpload(this)">
+    <div class="media-upload-zone-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+    </div>
+    <div class="media-upload-zone-title">Click to upload or drag &amp; drop your image here</div>
+    <div class="media-upload-zone-subtitle">Supports JPG, PNG, WEBP, SVG, and GIF &bull; Max 10MB</div>
+    <div id="media-upload-indicator" style="display:none;margin-top:12px;font-size:0.88rem;color:var(--accent);font-weight:600;">
+      <span class="inline-media-spinner" style="margin-right:6px;"></span> Uploading your image...
+    </div>
+  </div>
+</form>
 
-<!-- Search & Filter Bar -->
-<div style="margin-bottom:18px;display:flex;align-items:center;gap:12px;">
-  <input type="search" id="media-search-input" placeholder="Search images by filename..." style="max-width:360px;" oninput="filterMediaLibrary(this.value)">
-  <span id="media-count-badge" style="font-size:0.84rem;color:var(--text-muted);"><?= count($mediaItems) ?> items</span>
+<!-- Filter & Search Toolbar -->
+<div class="media-toolbar">
+  <div class="media-search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="search" id="media-search-input" placeholder="Search by image filename..." oninput="filterMediaLibrary(this.value)">
+  </div>
+  <div class="media-filter-chips">
+    <button type="button" class="media-chip active" onclick="filterByFormat('all', this)">All (<?= count($mediaItems) ?>)</button>
+    <button type="button" class="media-chip" onclick="filterByFormat('png', this)">PNG</button>
+    <button type="button" class="media-chip" onclick="filterByFormat('jpg', this)">JPG</button>
+    <button type="button" class="media-chip" onclick="filterByFormat('webp', this)">WEBP</button>
+    <button type="button" class="media-chip" onclick="filterByFormat('svg', this)">SVG</button>
+  </div>
+  <span id="media-count-badge" style="font-size:0.84rem;color:var(--text-muted);font-weight:600;"><?= count($mediaItems) ?> images shown</span>
 </div>
 
 <!-- Media Library Grid -->
 <div class="media-library-grid" id="media-library-container">
   <?php if (!$mediaItems): ?>
-    <div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--text-muted);border:1px dashed var(--hairline);border-radius:var(--radius);">
+    <div style="grid-column:1/-1;text-align:center;padding:54px 20px;color:var(--text-muted);border:1px dashed var(--hairline);border-radius:var(--radius);">
       No images uploaded yet. Upload your first picture above!
     </div>
   <?php else: ?>
     <?php foreach ($mediaItems as $item): ?>
-      <div class="media-library-card" data-filename="<?= e(strtolower($item['filename'])) ?>">
+      <div class="media-library-card" data-filename="<?= e(strtolower($item['filename'])) ?>" data-ext="<?= e(strtolower($item['ext'])) ?>">
         <div class="media-library-card-thumb">
+          <span class="media-format-badge"><?= e(strtoupper($item['ext'])) ?></span>
           <img src="<?= e($item['admin_preview_url']) ?>" alt="<?= e($item['filename']) ?>" loading="lazy">
         </div>
         <div class="media-library-card-body">
           <p class="media-library-card-title" title="<?= e($item['filename']) ?>"><?= e($item['filename']) ?></p>
           <p class="media-library-card-meta">
-            <?= e($item['size_formatted']) ?><?= $item['dimensions'] ? ' &bull; ' . e($item['dimensions']) : '' ?>
+            <span><?= e($item['size_formatted']) ?></span>
+            <?php if ($item['dimensions']): ?>
+              <span>&bull;</span>
+              <span><?= e($item['dimensions']) ?></span>
+            <?php endif; ?>
           </p>
           <div class="media-library-card-actions">
-            <button type="button" class="btn btn-ghost btn-sm" onclick="copyMediaUrl('<?= e($item['url']) ?>', this)">Copy path</button>
-            <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to permanently delete this image?');">
+            <button type="button" class="btn-media-copy" onclick="copyMediaUrl('<?= e($item['url']) ?>', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy path</span>
+            </button>
+            <form method="POST" style="display:inline;margin:0;" onsubmit="return confirm('Permanently delete <?= e($item['filename']) ?>?');">
               <?= csrf_field() ?>
               <input type="hidden" name="delete_file" value="<?= e($item['filename']) ?>">
-              <button type="submit" class="btn btn-ghost btn-sm" style="color:#ff7373;">Delete</button>
+              <button type="submit" class="btn-media-delete" title="Delete image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Delete</span>
+              </button>
             </form>
           </div>
         </div>
@@ -263,34 +301,94 @@ require __DIR__ . '/includes/admin-header.php';
 </div>
 
 <script>
+let activeFormatFilter = 'all';
+
 function filterMediaLibrary(query) {
-  const term = query.trim().toLowerCase();
+  const term = (query || '').trim().toLowerCase();
   const cards = document.querySelectorAll('.media-library-card');
   let visibleCount = 0;
   cards.forEach(card => {
     const filename = card.getAttribute('data-filename') || '';
-    if (!term || filename.includes(term)) {
+    const ext = card.getAttribute('data-ext') || '';
+    const matchSearch = !term || filename.includes(term);
+    let matchFormat = true;
+    if (activeFormatFilter !== 'all') {
+      if (activeFormatFilter === 'jpg') {
+        matchFormat = (ext === 'jpg' || ext === 'jpeg');
+      } else {
+        matchFormat = (ext === activeFormatFilter);
+      }
+    }
+
+    if (matchSearch && matchFormat) {
       card.style.display = '';
       visibleCount++;
     } else {
       card.style.display = 'none';
     }
   });
+
   const badge = document.getElementById('media-count-badge');
   if (badge) {
-    badge.textContent = visibleCount + ' item' + (visibleCount === 1 ? '' : 's');
+    badge.textContent = visibleCount + ' image' + (visibleCount === 1 ? '' : 's') + ' shown';
   }
+}
+
+function filterByFormat(format, btn) {
+  activeFormatFilter = format;
+  document.querySelectorAll('.media-chip').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const searchInput = document.getElementById('media-search-input');
+  filterMediaLibrary(searchInput ? searchInput.value : '');
 }
 
 function copyMediaUrl(url, btn) {
   navigator.clipboard.writeText(url).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = orig; }, 2000);
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<span style="color:#2ed573;">✓ Copied!</span>';
+    setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
   }).catch(() => {
     prompt('Copy image URL:', url);
   });
 }
+
+function handleDirectUpload(input) {
+  if (input.files && input.files[0]) {
+    const indicator = document.getElementById('media-upload-indicator');
+    if (indicator) indicator.style.display = 'block';
+    document.getElementById('media-standalone-form').submit();
+  }
+}
+
+// Drag & drop on the upload zone
+(function() {
+  const dropZone = document.getElementById('media-drop-zone');
+  const fileInput = document.getElementById('media-file-input');
+  if (!dropZone || !fileInput) return;
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('is-dragover');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, e => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove('is-dragover');
+    });
+  });
+
+  dropZone.addEventListener('drop', e => {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files;
+      handleDirectUpload(fileInput);
+    }
+  });
+})();
 </script>
 
 <?php require __DIR__ . '/includes/admin-footer.php'; ?>
