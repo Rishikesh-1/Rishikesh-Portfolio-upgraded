@@ -16,7 +16,7 @@ $projects = $pdo->query(
 
 $services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC LIMIT 6')->fetchAll();
 $serviceProjectCounts = service_project_counts($pdo);
-$saleProducts = $pdo->query('SELECT * FROM products WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC, id DESC LIMIT 6')->fetchAll();
+$saleProducts = $pdo->query('SELECT * FROM products WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC, id DESC LIMIT 3')->fetchAll();
 $contactPhone = get_setting($pdo, 'contact_phone', '');
 $experience = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll();
 $skills = $pdo->query('SELECT * FROM skills ORDER BY sort_order ASC')->fetchAll();
@@ -219,6 +219,7 @@ if (!empty($bioWords) && count($bioWords) > 150) {
       <?php render_product_card($prod, $i, $contactPhone ?? ''); ?>
     <?php endforeach; ?>
   </div>
+  <a class="btn btn-ghost section-cta" style="margin-top:var(--space-3);" href="<?= e(SITE_ROOT_URL) ?>/page.php?view=services#deals">Explore all turnkey projects &amp; deals <span aria-hidden="true">&rarr;</span></a>
 </section>
 <?php endif; ?>
 

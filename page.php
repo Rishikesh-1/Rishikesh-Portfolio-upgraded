@@ -66,7 +66,7 @@ require __DIR__ . '/includes/header.php';
     <?php if (!$items): ?><p class="empty-state">Services will appear here as they are added from the dashboard.</p><?php endif; ?>
 
     <?php if ($saleProducts): ?>
-      <div style="margin-top:64px;padding-top:48px;border-top:1px solid var(--hairline);">
+      <div id="deals" style="margin-top:64px;padding-top:48px;border-top:1px solid var(--hairline);">
         <div class="section-head" style="text-align:left;">
           <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;background:rgba(255,71,87,0.12);border:1px solid rgba(255,71,87,0.3);color:#ff4757;font-size:0.76rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
