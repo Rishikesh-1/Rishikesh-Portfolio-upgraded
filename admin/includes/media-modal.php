@@ -4,6 +4,33 @@
  * Allows picking from existing uploaded images or uploading new images, with direct cursor insertion.
  */
 ?>
+<style>
+  .media-modal-backdrop { position: fixed; inset: 0; background: rgba(7, 11, 22, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .media-modal-container { width: 100%; max-width: 1060px; height: 85vh; max-height: 720px; background: rgba(15, 23, 42, 0.98); border: 1px solid var(--hairline, rgba(150, 180, 255, .2)); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; }
+  .media-modal-header { padding: 16px 22px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
+  .media-modal-tabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); }
+  .media-tab-btn { padding: 6px 14px; border: 0; background: transparent; color: var(--text-muted, #aab5d1); font-size: 0.82rem; font-weight: 600; border-radius: 6px; cursor: pointer; }
+  .media-tab-btn.active { background: var(--accent, #5ce1ff); color: #070b16; }
+  .media-modal-close { background: transparent; border: 0; color: var(--text-muted, #aab5d1); font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+  .media-modal-close:hover { color: var(--text, #EDEEF0); }
+  .media-modal-body { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+  .media-tab-content { height: 100%; display: none; flex-direction: column; }
+  .media-tab-content.active { display: flex; }
+  .media-modal-toolbar { padding: 14px 22px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-shrink: 0; }
+  .media-modal-toolbar input { width: 100%; max-width: 320px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.3); color: var(--text, #EDEEF0); font-size: 0.85rem; }
+  .media-modal-main-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
+  .media-modal-grid-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 18px 22px; }
+  .media-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
+  .media-modal-item { aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.4); overflow: hidden; position: relative; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; }
+  .media-modal-item:hover { border-color: var(--accent, #5ce1ff); }
+  .media-modal-item.is-selected { border-color: var(--accent, #5ce1ff); box-shadow: 0 0 0 2px rgba(92, 225, 255, 0.4); }
+  .media-modal-item img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
+  .media-modal-sidebar { width: 310px; flex-shrink: 0; border-left: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.25); padding: 18px; overflow-y: auto; display: flex; flex-direction: column; }
+  .media-modal-sidebar-thumb { width: 100%; height: 160px; max-height: 160px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px; margin-bottom: 14px; }
+  .media-modal-sidebar-thumb img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
+  .media-modal-footer { padding: 14px 22px; border-top: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: rgba(0, 0, 0, 0.2); }
+</style>
+
 <!-- Media Library Universal Modal -->
 <div id="media-library-modal" class="media-modal-backdrop" style="display:none;" aria-hidden="true" role="dialog" aria-labelledby="media-modal-title">
   <div class="media-modal-container">

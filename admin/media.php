@@ -198,6 +198,37 @@ $active = 'media';
 require __DIR__ . '/includes/admin-header.php';
 ?>
 
+<style>
+  .media-stats-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+  .media-stat-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); font-size: 0.82rem; color: var(--text-muted, #aab5d1); }
+  .media-upload-zone { border: 2px dashed var(--hairline, rgba(150, 180, 255, .18)); border-radius: 14px; padding: 32px 20px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.02); margin-bottom: 24px; transition: all 0.2s ease; }
+  .media-upload-zone:hover { border-color: var(--accent, #5ce1ff); background: rgba(92, 225, 255, 0.05); }
+  .media-upload-zone-icon { width: 48px; height: 48px; margin: 0 auto 10px; border-radius: 50%; background: rgba(92, 225, 255, 0.1); color: var(--accent, #5ce1ff); display: flex; align-items: center; justify-content: center; }
+  .media-upload-zone-title { font-weight: 600; font-size: 0.98rem; color: var(--text, #EDEEF0); margin-bottom: 4px; }
+  .media-upload-zone-subtitle { font-size: 0.82rem; color: var(--text-muted, #aab5d1); }
+  .media-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .media-search-box { position: relative; flex: 1; min-width: 240px; max-width: 360px; }
+  .media-search-box input { width: 100%; padding: 10px 14px 10px 38px; border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.25); color: var(--text, #EDEEF0); font-size: 0.88rem; }
+  .media-search-box svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted, #aab5d1); pointer-events: none; }
+  .media-filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .media-chip { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(255, 255, 255, 0.03); color: var(--text-muted, #aab5d1); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+  .media-chip.active { background: var(--accent, #5ce1ff); color: #070b16; border-color: var(--accent, #5ce1ff); }
+  .media-library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  .media-library-card { background: var(--surface, rgba(15, 22, 42, .66)); border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
+  .media-library-card:hover { transform: translateY(-3px); border-color: var(--accent, #5ce1ff); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
+  .media-library-card-thumb { height: 160px; max-height: 160px; background: rgba(0, 0, 0, 0.35); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 12px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); position: relative; }
+  .media-library-card-thumb img { max-width: 100% !important; max-height: 100% !important; height: auto; width: auto; object-fit: contain !important; border-radius: 4px; display: block; }
+  .media-format-badge { position: absolute; top: 8px; left: 8px; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: rgba(0,0,0,0.8); color: var(--accent, #5ce1ff); border: 1px solid rgba(92, 225, 255, 0.35); text-transform: uppercase; }
+  .media-library-card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .media-library-card-title { font-size: 0.85rem; font-weight: 600; color: var(--text, #EDEEF0); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .media-library-card-meta { font-size: 0.76rem; color: var(--text-muted, #aab5d1); margin: 0; display: flex; align-items: center; gap: 6px; }
+  .media-library-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--hairline, rgba(150, 180, 255, .18)); }
+  .btn-media-copy { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(255, 255, 255, 0.04); color: var(--text, #EDEEF0); font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .btn-media-copy:hover { border-color: var(--accent, #5ce1ff); color: var(--accent, #5ce1ff); }
+  .btn-media-delete { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255, 107, 107, 0.3); background: rgba(255, 107, 107, 0.08); color: #ff6b6b; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+  .btn-media-delete:hover { background: rgba(255, 107, 107, 0.2); }
+</style>
+
 <div style="margin-bottom:24px;">
   <h1 class="display" style="font-size:1.75rem;margin-bottom:6px;">Media Library</h1>
   <p style="color:var(--text-muted);font-size:0.9rem;margin:0;">
