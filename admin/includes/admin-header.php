@@ -28,6 +28,12 @@ $active = $active ?? '';
     <a href="manage.php?section=testimonials" class="<?= $active === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
     <a href="messages.php" class="<?= $active === 'messages' ? 'active' : '' ?>">Messages</a>
     <a href="settings.php" class="<?= $active === 'settings' ? 'active' : '' ?>">Site settings</a>
+    <a href="logs.php" class="<?= $active === 'logs' ? 'active' : '' ?>" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Error logs</span>
+      <?php if (defined('APP_ERROR_LOG') && file_exists(APP_ERROR_LOG) && filesize(APP_ERROR_LOG) > 0): ?>
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff7373;" title="Errors logged"></span>
+      <?php endif; ?>
+    </a>
     <a href="logout.php" style="margin-top:20px;color:var(--accent);">Log out</a>
   </aside>
   <div class="admin-main">

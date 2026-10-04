@@ -2,4 +2,7 @@
 /uploads/*
 !/uploads/.htaccess
 !/uploads/.gitkeep
+/logs/*.log
+!/logs/.htaccess
+!/logs/.gitkeep
 /.qodo/
