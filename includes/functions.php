@@ -40,7 +40,7 @@ function sanitize_rich_text(string $content): string
         return nl2br(e($content));
     }
 
-    $allowedTags = ['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'blockquote', 'br', 'hr', 'a'];
+    $allowedTags = ['h1', 'h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'blockquote', 'br', 'hr', 'a', 'img', 'figure', 'figcaption'];
     $discardContents = ['script', 'style', 'iframe', 'object', 'svg', 'math'];
     $sanitizeChildren = static function (DOMNode $parent) use (&$sanitizeChildren, $allowedTags, $discardContents): void {
         $children = [];
@@ -86,6 +86,11 @@ function sanitize_rich_text(string $content): string
 
             $linkHref = '';
             $externalLink = false;
+            $imgSrc = '';
+            $imgAlt = '';
+            $imgTitle = '';
+            $imgClass = '';
+
             if ($tag === 'a') {
                 $linkHref = trim($child->getAttribute('href'));
                 $parts = parse_url($linkHref);
@@ -106,6 +111,39 @@ function sanitize_rich_text(string $content): string
                     $parent->removeChild($child);
                     continue;
                 }
+            } elseif ($tag === 'img') {
+                $rawSrc = trim($child->getAttribute('src'));
+                $imgAlt = trim($child->getAttribute('alt'));
+                $imgTitle = trim($child->getAttribute('title'));
+                $rawClass = trim($child->getAttribute('class'));
+                if (preg_match('/^[a-zA-Z0-9_\-\s]+$/', $rawClass)) {
+                    $imgClass = $rawClass;
+                }
+
+                $parts = parse_url($rawSrc);
+                $scheme = is_array($parts) ? strtolower($parts['scheme'] ?? '') : '';
+                $isHttp = in_array($scheme, ['http', 'https'], true)
+                    && filter_var($rawSrc, FILTER_VALIDATE_URL) !== false;
+                $isRelative = $scheme === ''
+                    && $rawSrc !== ''
+                    && !str_starts_with($rawSrc, '//')
+                    && !str_contains($rawSrc, '\\')
+                    && !str_contains($rawSrc, '..')
+                    && !preg_match('/[\x00-\x20]/', $rawSrc);
+
+                if ($isRelative) {
+                    $cleanRelative = ltrim($rawSrc, '/');
+                    if (str_starts_with($cleanRelative, 'uploads/') || str_starts_with($cleanRelative, 'assets/')) {
+                        $imgSrc = defined('SITE_ROOT_URL') ? (rtrim(SITE_ROOT_URL, '/') . '/' . $cleanRelative) : $rawSrc;
+                    }
+                } elseif ($isHttp) {
+                    $imgSrc = $rawSrc;
+                }
+
+                if ($imgSrc === '') {
+                    $parent->removeChild($child);
+                    continue;
+                }
             }
 
             while ($child->attributes->length > 0) {
@@ -117,8 +155,28 @@ function sanitize_rich_text(string $content): string
                     $child->setAttribute('target', '_blank');
                     $child->setAttribute('rel', 'noopener noreferrer');
                 }
+            } elseif ($tag === 'img') {
+                $child->setAttribute('src', $imgSrc);
+                if ($imgAlt !== '') {
+                    $child->setAttribute('alt', $imgAlt);
+                }
+                if ($imgTitle !== '') {
+                    $child->setAttribute('title', $imgTitle);
+                }
+                if ($imgClass !== '') {
+                    $child->setAttribute('class', $imgClass);
+                }
+                $child->setAttribute('loading', 'lazy');
+                $child->setAttribute('decoding', 'async');
             }
-            $sanitizeChildren($child);
+
+            if ($tag === 'img') {
+                while ($child->firstChild) {
+                    $child->removeChild($child->firstChild);
+                }
+            } else {
+                $sanitizeChildren($child);
+            }
         }
     };
     $sanitizeChildren($root);
@@ -197,6 +255,11 @@ function limit_rich_text_words(string $content, int $wordLimit = 20): string
                 }
                 $remaining = 0;
                 $truncated = true;
+                continue;
+            }
+
+            if ($child instanceof DOMElement && in_array(strtolower($child->tagName), ['img', 'figure', 'figcaption'], true)) {
+                $parent->removeChild($child);
                 continue;
             }
 

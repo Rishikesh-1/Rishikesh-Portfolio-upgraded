@@ -104,11 +104,14 @@ require __DIR__ . '/includes/admin-header.php';
     <div class="form-group"><label>Excerpt (20-word preview)</label><textarea name="excerpt" rows="3" maxlength="300" class="<?= $excerptError !== '' ? 'field-invalid' : '' ?>" <?= $excerptError !== '' ? 'aria-invalid="true" aria-describedby="excerpt-error"' : '' ?>><?= e($_POST['excerpt'] ?? $post['excerpt']) ?></textarea><?php if ($excerptError !== ''): ?><p class="field-error" id="excerpt-error" role="alert"><?= e($excerptError) ?></p><?php endif; ?></div>
     <div class="form-group">
         <label>Body</label>
+        <?php render_inline_image_helper('body'); ?>
         <textarea name="body" rows="12"><?= e($_POST['body'] ?? $post['body']) ?></textarea>
         <details class="form-guide">
             <summary>Formatting guide</summary>
-            <p>Use <code>&lt;h2&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;strong&gt;</code>, or <code>&lt;em&gt;</code>.</p>
-            <p>Link: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>. Formatting and links also work in the excerpt.</p>
+            <p>Structure: <code>&lt;h2&gt;Heading&lt;/h2&gt;</code>, <code>&lt;p&gt;Paragraph&lt;/p&gt;</code>, <code>&lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</code>, <code>&lt;strong&gt;Bold&lt;/strong&gt;</code>, <code>&lt;em&gt;Italic&lt;/em&gt;</code>.</p>
+            <p>Images: Click <strong>Upload &amp; Insert Image</strong> above, or use <code>&lt;img src="uploads/filename.webp" alt="Description"&gt;</code>.</p>
+            <p>Images with caption: <code>&lt;figure&gt;&lt;img src="uploads/..." alt="..."&gt;&lt;figcaption&gt;Your caption&lt;/figcaption&gt;&lt;/figure&gt;</code>.</p>
+            <p>Link: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>.</p>
         </details>
     </div>
   <div class="form-row">

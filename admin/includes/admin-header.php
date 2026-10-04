@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/inline-image-helper.php';
 // Expects $active (string) to highlight the current sidebar link.
 $active = $active ?? '';
 ?>

@@ -146,11 +146,14 @@ require __DIR__ . '/includes/admin-header.php';
 
   <div class="form-group">
     <label>Full description</label>
-    <textarea name="description" rows="6"><?= e($_POST['description'] ?? $project['description']) ?></textarea>
+    <?php render_inline_image_helper('description'); ?>
+    <textarea name="description" rows="8"><?= e($_POST['description'] ?? $project['description']) ?></textarea>
     <details class="form-guide">
       <summary>Formatting guide</summary>
-      <p>Headings: <code>&lt;h2&gt;Section title&lt;/h2&gt;</code>. Lists: <code>&lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</code>.</p>
-      <p>Link: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>. HTTP/HTTPS and site-relative links are supported.</p>
+      <p>Structure: <code>&lt;h2&gt;Section title&lt;/h2&gt;</code>, <code>&lt;p&gt;Paragraph&lt;/p&gt;</code>, <code>&lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</code>, <code>&lt;strong&gt;Bold&lt;/strong&gt;</code>, <code>&lt;em&gt;Italic&lt;/em&gt;</code>.</p>
+      <p>Images: Click <strong>Upload &amp; Insert Image</strong> above, or use <code>&lt;img src="uploads/filename.webp" alt="Description"&gt;</code>.</p>
+      <p>Images with caption: <code>&lt;figure&gt;&lt;img src="uploads/..." alt="..."&gt;&lt;figcaption&gt;Your caption&lt;/figcaption&gt;&lt;/figure&gt;</code>.</p>
+      <p>Link: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>.</p>
     </details>
   </div>
 
