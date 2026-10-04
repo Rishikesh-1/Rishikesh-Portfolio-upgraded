@@ -911,7 +911,7 @@ body[data-theme='light'] .back-to-top:hover {
 
 /* ---------- Clients / Brands marquee ticker ---------- */
 .clients-slider-section {
-  padding: 24px 0 28px;
+  padding: 12px 0 14px;
   position: relative;
   overflow: hidden;
   border-top: 1px solid var(--hairline);
@@ -925,16 +925,16 @@ body[data-theme='light'] .clients-slider-section {
 .clients-slider-header {
   text-align: center;
   max-width: 860px;
-  margin: 0 auto 16px;
+  margin: 0 auto 8px;
   padding: 0 20px;
 }
 .clients-slider-title {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: clamp(0.95rem, 2.2vw, 1.12rem);
+  font-size: clamp(0.86rem, 1.8vw, 1rem);
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
-  line-height: 1.4;
+  line-height: 1.35;
   margin: 0;
 }
 body[data-theme='light'] .clients-slider-title {
@@ -942,8 +942,8 @@ body[data-theme='light'] .clients-slider-title {
 }
 .clients-slider-subtitle {
   color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-top: 4px;
+  font-size: 0.82rem;
+  margin-top: 2px;
 }
 .clients-marquee-wrapper {
   position: relative;
@@ -952,7 +952,7 @@ body[data-theme='light'] .clients-slider-title {
   display: flex;
   mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
-  padding: 6px 0;
+  padding: 2px 0;
 }
 .clients-marquee-track {
   display: flex;
@@ -963,8 +963,8 @@ body[data-theme='light'] .clients-slider-title {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: clamp(38px, 6vw, 76px);
-  padding-right: clamp(38px, 6vw, 76px);
+  gap: clamp(20px, 3vw, 36px);
+  padding-right: clamp(20px, 3vw, 36px);
   animation: marquee-scroll 28s linear infinite;
   flex-shrink: 0;
   min-width: 100%;
@@ -984,7 +984,7 @@ body[data-theme='light'] .clients-slider-title {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 48px;
+  height: 56px;
   flex-shrink: 0;
 }
 .clients-marquee-item a {
@@ -998,8 +998,8 @@ body[data-theme='light'] .clients-slider-title {
   transform: scale(1.06);
 }
 .clients-marquee-item img {
-  max-height: 42px;
-  max-width: 160px;
+  max-height: 50px;
+  max-width: 175px;
   width: auto;
   height: auto;
   object-fit: contain;
