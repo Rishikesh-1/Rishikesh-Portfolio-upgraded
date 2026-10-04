@@ -13,7 +13,7 @@ $projects = $pdo->query(
 )->fetchAll();
 
 $services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll();
-$experience = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll();
+$experience = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll();
 $skills = $pdo->query('SELECT * FROM skills ORDER BY sort_order ASC')->fetchAll();
 $testimonials = $pdo->query('SELECT * FROM testimonials WHERE is_visible = 1 ORDER BY sort_order ASC LIMIT 6')->fetchAll();
 $socialLinks = $pdo->query('SELECT * FROM social_links WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll();

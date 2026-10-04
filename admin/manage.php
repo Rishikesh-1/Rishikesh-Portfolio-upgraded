@@ -16,10 +16,10 @@ $definitions = [
             'start_date' => ['label' => 'Start date', 'required' => true, 'maxlength' => 30],
             'end_date' => ['label' => 'End date', 'default' => 'Present', 'maxlength' => 30],
             'description' => ['label' => 'Description', 'type' => 'textarea'],
-            'sort_order' => ['label' => 'Display order', 'type' => 'number', 'default' => 0],
+            'sort_order' => ['label' => 'Display order (1 = first, 2 = second...)', 'type' => 'number', 'default' => 0],
             'is_visible' => ['label' => 'Visible on live site', 'type' => 'checkbox', 'default' => 1],
         ],
-        'columns' => ['role_title', 'organization', 'start_date', 'is_visible'],
+        'columns' => ['sort_order', 'role_title', 'organization', 'start_date', 'is_visible'],
     ],
     'skills' => [
         'title' => 'Skills',
@@ -197,6 +197,8 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
             foreach ($fields as $name => $field) {
                 if (($field['type'] ?? '') === 'image') {
                     $values[$name] = $newImage ?: ($record[$name] ?? null);
+                } elseif (($field['type'] ?? '') === 'number') {
+                    $values[$name] = isset($_POST[$name]) && $_POST[$name] !== '' ? (int)$_POST[$name] : ($field['default'] ?? 0);
                 } else {
                     $values[$name] = $_POST[$name] ?? null;
                 }

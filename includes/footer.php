@@ -27,6 +27,6 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
-<script src="<?= e(SITE_ROOT_URL) ?>/assets/js/main.js?v=20260916-2" defer></script>
+<script src="<?= e(SITE_ROOT_URL) ?>/assets/js/main.js?v=20261004-2" defer></script>
 </body>
 </html>

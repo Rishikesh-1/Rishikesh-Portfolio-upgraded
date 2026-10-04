@@ -65,6 +65,31 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  document.querySelectorAll('[data-experience-toggle]').forEach(function (experienceToggle) {
+    var panelId = experienceToggle.getAttribute('aria-controls');
+    var panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    var initialOpen = experienceToggle.getAttribute('aria-expanded') === 'true';
+    if ('inert' in panel) {
+      panel.inert = !initialOpen;
+    }
+
+    experienceToggle.addEventListener('click', function () {
+      var isOpen = experienceToggle.getAttribute('aria-expanded') === 'true';
+      var item = experienceToggle.closest('.timeline-item');
+      var nextState = !isOpen;
+
+      experienceToggle.setAttribute('aria-expanded', nextState ? 'true' : 'false');
+      if (item) {
+        item.classList.toggle('is-open', nextState);
+      }
+      if ('inert' in panel) {
+        panel.inert = !nextState;
+      }
+    });
+  });
+
   // Reveal hero name letters/words with a staggered delay if data-reveal is present.
   document.querySelectorAll('[data-reveal]').forEach(function (el, i) {
     el.style.animationDelay = (i * 0.06) + 's';
@@ -93,19 +118,37 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var skillTarget = document.querySelector('[data-skill-rotate]');
-  if (skillTarget && !reduceMotion) {
-    var skills = ['creative direction', 'digital marketing', 'web experiences', 'team leadership'];
-    var skillIndex = 0;
-    window.setInterval(function () {
-      skillTarget.style.opacity = '0';
-      skillTarget.style.transform = 'translateY(5px)';
-      window.setTimeout(function () {
-        skillIndex = (skillIndex + 1) % skills.length;
-        skillTarget.textContent = skills[skillIndex];
-        skillTarget.style.opacity = '1';
-        skillTarget.style.transform = 'translateY(0)';
-      }, 220);
-    }, 2800);
+  if (skillTarget) {
+    var skills = [];
+    try {
+      var rawSkills = skillTarget.dataset.skills || skillTarget.getAttribute('data-skills') || '[]';
+      skills = JSON.parse(rawSkills);
+    } catch (e) {
+      skills = [];
+    }
+    if (!Array.isArray(skills) || !skills.length) {
+      var fallbackText = (skillTarget.textContent || '').trim();
+      skills = fallbackText ? [fallbackText] : ['creative direction', 'digital marketing', 'web experiences'];
+    }
+    skills = skills.map(function (s) { return typeof s === 'string' ? s.trim() : ''; }).filter(Boolean);
+
+    if (skills.length > 0) {
+      skillTarget.textContent = skills[0];
+    }
+
+    if (skills.length > 1 && !reduceMotion) {
+      var skillIndex = 0;
+      window.setInterval(function () {
+        skillTarget.style.opacity = '0';
+        skillTarget.style.transform = 'translateY(5px)';
+        window.setTimeout(function () {
+          skillIndex = (skillIndex + 1) % skills.length;
+          skillTarget.textContent = skills[skillIndex];
+          skillTarget.style.opacity = '1';
+          skillTarget.style.transform = 'translateY(0)';
+        }, 220);
+      }, 2800);
+    }
   }
 
   document.querySelectorAll('[data-social-slider]').forEach(function (slider) {

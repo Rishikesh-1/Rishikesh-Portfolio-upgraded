@@ -52,7 +52,7 @@ require __DIR__ . '/includes/header.php';
   <?php $items = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll(); ?>
   <section class="section"><div class="services-grid"><?php foreach ($items as $item): ?><article class="service-item"><p class="eyebrow"><?= e($item['price_label'] ?? '') ?></p><h2><?= e($item['title']) ?></h2><p><?= e($item['description'] ?? '') ?></p></article><?php endforeach; ?></div><?php if (!$items): ?><p class="empty-state">Services will appear here as they are added from the dashboard.</p><?php endif; ?></section>
 <?php elseif ($view === 'experience'): ?>
-  <?php $items = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll(); ?>
+  <?php $items = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll(); ?>
   <section class="section"><div class="timeline"><?php foreach ($items as $item): ?><article class="timeline-item"><p class="timeline-role"><?= e($item['role_title']) ?></p><p class="timeline-org"><?= e($item['organization']) ?><?= $item['location'] ? ' · ' . e($item['location']) : '' ?></p><p class="timeline-date"><?= e($item['start_date']) ?> — <?= e($item['end_date']) ?></p><p class="timeline-desc"><?= e($item['description'] ?? '') ?></p></article><?php endforeach; ?></div><?php if (!$items): ?><p class="empty-state">Experience will appear here as it is added from the dashboard.</p><?php endif; ?></section>
 <?php elseif ($view === 'skills'): ?>
   <?php $items = $pdo->query('SELECT * FROM skills ORDER BY sort_order ASC')->fetchAll(); ?>
