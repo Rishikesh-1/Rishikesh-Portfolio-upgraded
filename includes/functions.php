@@ -438,6 +438,81 @@ function handle_image_upload(array $file, string $fieldNameForError = 'image'): 
     return $newName;
 }
 
+/**
+ * Handle secure upload of site preloader file (SVG, GIF, PNG, WEBP).
+ * Specifically sanitizes SVG files to ensure no malicious scripts or event handlers exist.
+ */
+function handle_loader_upload(array $file): ?string
+{
+    if (!isset($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $uploadErrors = [
+            UPLOAD_ERR_INI_SIZE => 'The file exceeds the server upload limit.',
+            UPLOAD_ERR_FORM_SIZE => 'The file exceeds the form upload limit.',
+            UPLOAD_ERR_PARTIAL => 'The upload was interrupted. Please try again.',
+            UPLOAD_ERR_NO_TMP_DIR => 'The server temporary upload directory is missing.',
+            UPLOAD_ERR_CANT_WRITE => 'The server could not write the uploaded file.',
+            UPLOAD_ERR_EXTENSION => 'A server extension stopped the upload.',
+        ];
+        throw new RuntimeException('Loader: ' . ($uploadErrors[$file['error']] ?? 'Upload error.'));
+    }
+    if ($file['size'] > MAX_UPLOAD_BYTES) {
+        throw new RuntimeException('Loader file is too large. Max size is ' . (MAX_UPLOAD_BYTES / 1024 / 1024) . 'MB.');
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExts = ['svg', 'gif', 'png', 'webp'];
+    if (!in_array($ext, $allowedExts, true)) {
+        throw new RuntimeException('Invalid loader format. Allowed formats: SVG, GIF, PNG, WEBP.');
+    }
+
+    if ($ext === 'svg') {
+        $content = file_get_contents($file['tmp_name']);
+        if ($content === false || stripos($content, '<svg') === false) {
+            throw new RuntimeException('Uploaded file is not a valid SVG file.');
+        }
+        // Disallow dangerous script tags, handlers, and external entities
+        $disallowed = [
+            '<\s*script',
+            'javascript\s*:',
+            'data\s*:\s*text\/html',
+            'onload\s*=',
+            'onerror\s*=',
+            'onclick\s*=',
+            'onmouseover\s*=',
+            '<\s*foreignobject',
+            '<\s*iframe',
+            '<\s*embed',
+            '<!ENTITY'
+        ];
+        foreach ($disallowed as $pattern) {
+            if (preg_match('/' . $pattern . '/i', $content)) {
+                throw new RuntimeException('Security check failed: SVG contains unauthorized scripts or tags.');
+            }
+        }
+    } else {
+        if (@getimagesize($file['tmp_name']) === false) {
+            throw new RuntimeException('The uploaded file is not a valid image.');
+        }
+    }
+
+    if (!is_dir(UPLOAD_DIR)) {
+        mkdir(UPLOAD_DIR, 0755, true);
+    }
+
+    $newName = 'loader_' . bin2hex(random_bytes(12)) . '.' . $ext;
+    $destination = UPLOAD_DIR . $newName;
+
+    if (!move_uploaded_file($file['tmp_name'], $destination)) {
+        throw new RuntimeException('Could not save uploaded loader file.');
+    }
+    chmod($destination, 0644);
+
+    return $newName;
+}
+
 /** Delete a previously uploaded file safely (used when replacing/removing images). */
 function delete_uploaded_file(?string $filename): void
 {

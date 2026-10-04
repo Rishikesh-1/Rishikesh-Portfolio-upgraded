@@ -37,8 +37,14 @@ $favicon          = get_setting($pdo, 'site_favicon', '');
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
 </head>
 <body class="<?= e($body_class ?? '') ?>" data-theme="dark">
+<?php
+$customLoader = get_setting($pdo, 'site_loader_file', '');
+$loaderGraphicUrl = (!empty($customLoader) && file_exists(UPLOAD_DIR . $customLoader))
+    ? (UPLOAD_URL . $customLoader)
+    : (SITE_ROOT_URL . '/assets/img/loading.svg');
+?>
 <div class="preloader" id="preloader" aria-label="Loading portfolio" role="status">
-	<img src="<?= e(SITE_ROOT_URL) ?>/assets/img/loading.svg" alt="Loading" class="preloader-graphic">
+	<img src="<?= e($loaderGraphicUrl) ?>" alt="Loading" class="preloader-graphic">
 </div>
 <script>
 	window.addEventListener('load', function () {

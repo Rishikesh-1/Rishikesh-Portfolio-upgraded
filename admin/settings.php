@@ -21,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newFavicon = handle_image_upload($_FILES['site_favicon'] ?? [], 'site favicon');
         $currentLogo = $settings['site_logo_image'] ?? '';
         $newLogo = handle_image_upload($_FILES['site_logo_image'] ?? [], 'site logo');
+        $currentLoader = $settings['site_loader_file'] ?? '';
+        $newLoader = handle_loader_upload($_FILES['site_loader_file'] ?? []);
 
         $profileImage = $about['profile_image'];
         $newProfile = handle_image_upload($_FILES['profile_image'] ?? [], 'profile photo');
@@ -69,6 +71,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($newLogo) {
           $upd->execute([':k' => 'site_logo_image', ':v' => $newLogo, ':v2' => $newLogo]);
           delete_uploaded_file($currentLogo);
+        }
+
+        if (!empty($_POST['remove_site_loader_file'])) {
+          delete_uploaded_file($currentLoader);
+          $upd->execute([':k' => 'site_loader_file', ':v' => '', ':v2' => '']);
+        } elseif ($newLoader) {
+          $upd->execute([':k' => 'site_loader_file', ':v' => $newLoader, ':v2' => $newLoader]);
+          delete_uploaded_file($currentLoader);
         }
 
         $success = true;
@@ -137,6 +147,40 @@ require __DIR__ . '/includes/admin-header.php';
       <?php endif; ?>
       <input type="file" name="site_logo_image" accept=".jpg,.jpeg,.png,.webp">
       <small>Upload a transparent PNG or WEBP for best results.</small>
+    </div>
+  </div>
+
+  <h3 style="margin:var(--space-4) 0 16px;">Page loading animation</h3>
+  <div class="form-row">
+    <div class="form-group" style="grid-column: span 2;">
+      <label>Preloader graphic (SVG, GIF, PNG, WebP)</label>
+      <?php 
+      $customLoader = $settings['site_loader_file'] ?? '';
+      $hasCustomLoader = !empty($customLoader) && file_exists(UPLOAD_DIR . $customLoader);
+      $currentLoaderUrl = $hasCustomLoader 
+          ? (UPLOAD_URL . $customLoader) 
+          : (SITE_ROOT_URL . '/assets/img/loading.svg');
+      ?>
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:12px;padding:14px 18px;background:var(--ink);border:1px solid var(--hairline);border-radius:var(--radius);max-width:540px;">
+        <div style="width:72px;height:72px;display:grid;place-items:center;background:rgba(255,255,255,0.04);border:1px solid var(--hairline);border-radius:8px;padding:8px;overflow:hidden;flex-shrink:0;">
+          <img src="<?= e($currentLoaderUrl) ?>" alt="Current loading animation" style="max-width:100%;max-height:100%;object-fit:contain;">
+        </div>
+        <div>
+          <span style="font-weight:600;font-size:0.92rem;color:var(--text);display:block;">
+            <?= $hasCustomLoader ? 'Custom loader active' : 'Default animated loader active' ?>
+          </span>
+          <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-top:2px;">
+            <?= $hasCustomLoader ? e($customLoader) : 'assets/img/loading.svg' ?>
+          </span>
+          <?php if ($hasCustomLoader): ?>
+            <label style="font-size:0.82rem;margin-top:8px;display:inline-flex;align-items:center;gap:6px;color:#ff8d8d;cursor:pointer;">
+              <input type="checkbox" name="remove_site_loader_file" value="1" style="width:auto;display:inline;"> Revert to default loading animation
+            </label>
+          <?php endif; ?>
+        </div>
+      </div>
+      <input type="file" name="site_loader_file" accept=".svg,.gif,.png,.webp">
+      <small>Download any loader SVG file and upload it here to replace the website's initial loading screen.</small>
     </div>
   </div>
 
