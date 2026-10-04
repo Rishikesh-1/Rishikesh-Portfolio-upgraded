@@ -227,7 +227,9 @@ require __DIR__ . '/includes/admin-header.php';
 
 <?php if (empty($parsedEntries)): ?>
   <div class="admin-card" style="text-align:center;padding:48px 24px;">
-    <div style="font-size:2.2rem;margin-bottom:12px;">🎉</div>
+    <div style="width:48px;height:48px;border-radius:50%;background:rgba(92,225,255,0.1);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
     <h3 style="margin-bottom:8px;font-size:1.2rem;">No errors recorded</h3>
     <p style="color:var(--text-muted);font-size:0.92rem;max-width:480px;margin:0 auto;">
       The application has not encountered any unhandled exceptions or PHP errors. If a visitor or script hits an error in the future, full diagnostic details will show up here.
@@ -273,8 +275,9 @@ require __DIR__ . '/includes/admin-header.php';
         </div>
 
         <?php if (!empty($entry['location'])): ?>
-          <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-family:monospace;word-break:break-all;">
-            📍 <?= e($entry['location']) ?>
+          <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-family:monospace;word-break:break-all;display:flex;align-items:center;gap:6px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <?= e($entry['location']) ?>
           </div>
         <?php endif; ?>
 

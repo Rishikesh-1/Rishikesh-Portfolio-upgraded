@@ -215,24 +215,21 @@ function render_service_card(array $s, int $projectCount = 0, int $index = 0): v
     $hasCover = !empty($s['cover_image']);
     ?>
     <article class="svc-card<?= !empty($s['is_featured']) ? ' is-featured' : '' ?><?= $hasCover ? ' has-cover' : '' ?>" data-aos="fade-up" data-aos-delay="<?= (int) min($index * 80, 320) ?>">
-      <div class="svc-card-media">
-        <?php if ($hasCover): ?>
-          <img src="<?= e(UPLOAD_URL . $s['cover_image']) ?>" alt="" loading="lazy" width="640" height="400">
-        <?php else: ?>
-          <div class="svc-card-art" aria-hidden="true"><?= service_icon_svg($s['icon_class'] ?? '', 'svc-card-art-icon') ?></div>
-        <?php endif; ?>
-        <span class="svc-card-badge"><?= service_icon_svg($s['icon_class'] ?? '') ?></span>
-        <?php if (!empty($s['is_featured'])): ?><span class="svc-card-flag">Most requested</span><?php endif; ?>
-      </div>
+      <a href="<?= e($url) ?>" class="svc-card-media-link" tabindex="-1" aria-hidden="true">
+        <div class="svc-card-media">
+          <?php if ($hasCover): ?>
+            <img src="<?= e(UPLOAD_URL . $s['cover_image']) ?>" alt="" loading="lazy" width="640" height="400">
+          <?php else: ?>
+            <div class="svc-card-art" aria-hidden="true"><?= service_icon_svg($s['icon_class'] ?? '', 'svc-card-art-icon') ?></div>
+          <?php endif; ?>
+          <span class="svc-card-badge"><?= service_icon_svg($s['icon_class'] ?? '') ?></span>
+          <?php if (!empty($s['is_featured'])): ?><span class="svc-card-flag">Most requested</span><?php endif; ?>
+        </div>
+      </a>
       <div class="svc-card-body">
         <h3 class="svc-card-title"><a href="<?= e($url) ?>" class="svc-card-link"><?= e($s['title']) ?></a></h3>
         <?php if (!empty($s['description'])): ?><p class="svc-card-desc"><?= e($s['description']) ?></p><?php endif; ?>
-        <ul class="svc-card-meta">
-          <?php if (!empty($s['price_label'])): ?><li><span>Starting at</span><strong><?= e($s['price_label']) ?></strong></li><?php endif; ?>
-          <?php if (!empty($s['turnaround'])): ?><li><span>Timeline</span><strong><?= e($s['turnaround']) ?></strong></li><?php endif; ?>
-          <?php if ($projectCount > 0): ?><li><span>Delivered</span><strong><?= $projectCount ?> project<?= $projectCount === 1 ? '' : 's' ?></strong></li><?php endif; ?>
-        </ul>
-        <span class="svc-card-cta">Explore service <span aria-hidden="true">&rarr;</span></span>
+        <a href="<?= e($url) ?>" class="svc-card-cta">Explore service <span aria-hidden="true">&rarr;</span></a>
       </div>
     </article>
     <?php

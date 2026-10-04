@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 ensure_services_schema($pdo);
+ensure_products_schema($pdo);
 
 // ---- Fetch all content up front (prepared statements throughout) ----
 $about = $pdo->query('SELECT * FROM about_content WHERE id = 1')->fetch() ?: [];
@@ -15,6 +16,8 @@ $projects = $pdo->query(
 
 $services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC')->fetchAll();
 $serviceProjectCounts = service_project_counts($pdo);
+$saleProducts = $pdo->query('SELECT * FROM products WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC, id DESC LIMIT 6')->fetchAll();
+$contactPhone = get_setting($pdo, 'contact_phone', '');
 $experience = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll();
 $skills = $pdo->query('SELECT * FROM skills ORDER BY sort_order ASC')->fetchAll();
 $testimonials = $pdo->query('SELECT * FROM testimonials WHERE is_visible = 1 ORDER BY sort_order ASC LIMIT 6')->fetchAll();
@@ -198,6 +201,27 @@ if (!empty($bioWords) && count($bioWords) > 150) {
 </section>
 <?php endif; ?>
 
+<!-- READY PROJECTS FOR SALE / EXCLUSIVE DEALS -->
+<?php if ($saleProducts): ?>
+<section class="section" id="deals">
+  <div class="section-head" style="text-align:left;">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;background:rgba(255,71,87,0.12);border:1px solid rgba(255,71,87,0.3);color:#ff4757;font-size:0.76rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <span>Special Offer &bull; Buy Ready-to-Deploy Code</span>
+    </div>
+    <h2>Turnkey Projects &amp; Apps for Sale</h2>
+    <p style="color:var(--text-muted);font-size:1rem;max-width:640px;margin-top:4px;">
+      Buy exact pre-built applications, websites &amp; portfolio systems at fixed promotional prices. Deploy today or request custom additions.
+    </p>
+  </div>
+  <div class="prod-grid">
+    <?php foreach ($saleProducts as $i => $prod): ?>
+      <?php render_product_card($prod, $i, $contactPhone ?? ''); ?>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
 <!-- TESTIMONIALS -->
 <?php if ($testimonials): ?>
 <section class="section" id="testimonials">
@@ -274,16 +298,34 @@ if (!empty($bioWords) && count($bioWords) > 150) {
     <?php if (!empty($_SESSION['contact_errors'])): $contactErrors = $_SESSION['contact_errors']; unset($_SESSION['contact_errors']); ?><div class="contact-status contact-status-error" role="alert"><?php foreach ($contactErrors as $contactError): ?><?= e($contactError) ?><br><?php endforeach; ?></div><?php endif; ?>
   <div class="contact-grid">
     <div>
-      <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Email</p>
-      <p style="font-size:1.2rem;margin-bottom:var(--space-3);"><?= e(get_setting($pdo, 'contact_email')) ?></p>
-      <?php if (get_setting($pdo, 'contact_phone')): ?>
-        <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Phone</p>
-        <p style="font-size:1.2rem;margin-bottom:var(--space-3);"><?= e(get_setting($pdo, 'contact_phone')) ?></p>
+      <?php 
+      $homeContactEmail = get_setting($pdo, 'contact_email');
+      $homeContactPhone = get_setting($pdo, 'contact_phone');
+      $homeLocation     = get_setting($pdo, 'location');
+      $homeWaDigits     = preg_replace('/\D+/', '', (string)$homeContactPhone);
+      ?>
+      <?php if ($homeContactEmail): ?>
+        <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Email</p>
+        <p style="font-size:1.2rem;margin-bottom:var(--space-3);"><a href="mailto:<?= e($homeContactEmail) ?>" style="color:var(--text);"><?= e($homeContactEmail) ?></a></p>
       <?php endif; ?>
-      <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Location</p>
-      <p style="font-size:1.2rem;"><?= e(get_setting($pdo, 'location')) ?></p>
+      <?php if ($homeContactPhone): ?>
+        <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Phone</p>
+        <p style="font-size:1.2rem;margin-bottom:var(--space-3);"><a href="tel:<?= e($homeContactPhone) ?>" style="color:var(--text);"><?= e($homeContactPhone) ?></a></p>
+      <?php endif; ?>
+      <?php if ($homeLocation): ?>
+        <p style="color:var(--text-muted);margin-bottom:var(--space-2);">Location</p>
+        <p style="font-size:1.2rem;margin-bottom:var(--space-3);"><?= e($homeLocation) ?></p>
+      <?php endif; ?>
+      <?php if ($homeWaDigits !== '' && strlen($homeWaDigits) >= 8): ?>
+        <div style="margin-top:20px;">
+          <a href="https://wa.me/<?= e($homeWaDigits) ?>?text=<?= rawurlencode('Hi! I would like to connect regarding a project.') ?>" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Chat on WhatsApp
+          </a>
+        </div>
+      <?php endif; ?>
     </div>
-    <form class="contact-form" action="/contact-submit.php" method="POST">
+    <form class="contact-form" action="<?= e(SITE_ROOT_URL) ?>/contact-submit.php" method="POST">
       <?= csrf_field() ?>
       <input type="text" name="name" placeholder="Your name" required maxlength="120">
       <input type="email" name="email" placeholder="Your email" required maxlength="150">

@@ -378,6 +378,7 @@ function social_icon(string $platform): string
         'tiktok' => '<path d="M14 4v10.2a3.8 3.8 0 1 1-3-3.7"/><path d="M14 4c.7 2.5 2.1 4 4.5 4"/>',
         'linkedin' => '<path d="M5 8v11M5 5.2v.1M10 19v-6a3 3 0 0 1 6 0v6M10 10v9"/>',
         'facebook' => '<path d="M14 21v-8h2.7l.4-3H14V8.1c0-.9.3-1.6 1.7-1.6h1.8V3.8c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H8v3h2.8v8"/>',
+        'whatsapp' => '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
         'vimeo' => '<path d="M4 8.5c1.5-1.8 3-2.6 4.4-2.4 1.8.2 1.6 2.4 2.2 4.5.6 2.1 1 3.2 1.4 3.2.3 0 1.2-1 2.5-3 1.3-2 1.9-3.1 1.8-3.4-.1-.5-.8-.5-2 .1l.8-1.5c1.8-.8 3.2-1.1 4.1-.5 1 .6.9 1.9-.1 4-2.8 5.7-5.1 8.6-7 8.6-1.3 0-2.4-1.2-3.2-3.7l-1.7-6.2C6.5 7 6 6.8 4.9 7.6L4 8.5Z"/>',
     ];
     $path = $paths[$key] ?? '<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2 2.2 3 4.9 3 8s-1 5.8-3 8c-2-2.2-3-4.9-3-8s1-5.8 3-8Z"/>';
@@ -441,7 +442,7 @@ function require_admin_login(): void
 // ------------------------------------------------------------
 function handle_image_upload(array $file, string $fieldNameForError = 'image'): ?string
 {
-    if (!isset($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+    if (empty($file) || !isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return null; // optional field, nothing uploaded
     }
     if ($file['error'] !== UPLOAD_ERR_OK) {
@@ -664,4 +665,7 @@ function ensure_clients_schema(PDO $pdo): void
 
 // Services feature helpers (schema migration, icons, card renderer)
 require_once __DIR__ . '/services-lib.php';
+
+// Ready projects & digital products for sale
+require_once __DIR__ . '/products-lib.php';
 

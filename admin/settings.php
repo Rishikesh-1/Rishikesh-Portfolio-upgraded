@@ -142,10 +142,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('profile_image', 'Profile photo')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="profile_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="profile_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('profile_image')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="profile_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('profile_image')">Clear</button>
       </div>
 
       <div id="profile_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -153,7 +153,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="profile_image_existing" id="profile_image_existing" value="">
-      <input type="file" id="profile_image_file_input" name="profile_image" accept=".jpg,.jpeg,.png,.webp" onchange="clearMediaSelection('profile_image')">
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload a profile photo via the Media Library.</small>
     </div>
     <div class="form-group">
       <label>Résumé (PDF)</label>
@@ -174,10 +174,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_favicon', 'Browser Tab Icon')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="site_favicon_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="site_favicon_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_favicon')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_favicon_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_favicon')">Clear</button>
       </div>
 
       <div id="site_favicon_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -185,8 +185,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="site_favicon_existing" id="site_favicon_existing" value="">
-      <input type="file" id="site_favicon_file_input" name="site_favicon" accept=".jpg,.jpeg,.png,.webp" onchange="clearMediaSelection('site_favicon')">
-      <small>Upload a JPG, PNG, or WEBP image or choose from library. A square PNG is recommended.</small>
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Select from library or upload. A square PNG or ICO is recommended.</small>
     </div>
     <div class="form-group">
       <label>Logo image (optional)</label>
@@ -198,10 +197,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_logo_image', 'Navigation Logo')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="site_logo_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="site_logo_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_logo_image')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_logo_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_logo_image')">Clear</button>
       </div>
 
       <div id="site_logo_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -209,8 +208,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="site_logo_image_existing" id="site_logo_image_existing" value="">
-      <input type="file" id="site_logo_image_file_input" name="site_logo_image" accept=".jpg,.jpeg,.png,.webp,.svg" onchange="clearMediaSelection('site_logo_image')">
-      <small>Upload a transparent PNG, SVG, or WEBP for best results.</small>
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Transparent PNG, SVG, or WebP recommended.</small>
     </div>
   </div>
 
@@ -247,10 +245,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_loader_file', 'Preloader Graphic')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="site_loader_file_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="site_loader_file_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_loader_file')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_loader_file_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_loader_file')">Clear</button>
       </div>
 
       <div id="site_loader_file_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -258,8 +256,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="site_loader_file_existing" id="site_loader_file_existing" value="">
-      <input type="file" id="site_loader_file_file_input" name="site_loader_file" accept=".svg,.gif,.png,.webp" onchange="clearMediaSelection('site_loader_file')">
-      <small>Download any loader SVG or GIF file and upload it here or choose from the Media Library to replace the website's initial loading screen.</small>
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Select or upload an SVG or GIF loader from the Media Library to replace the website's loading screen.</small>
     </div>
   </div>
 

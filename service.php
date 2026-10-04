@@ -110,7 +110,7 @@ require __DIR__ . '/includes/header.php';
           <a href="#book" class="btn btn-primary svc-btn-lg">Book this service <span aria-hidden="true">&rarr;</span></a>
           <a href="#work" class="btn btn-ghost svc-btn-lg">See related work</a>
         </div>
-        <p class="svc-hero-assure"><span aria-hidden="true">&#10003;</span> Free discovery call &nbsp; <span aria-hidden="true">&#10003;</span> Reply within 24 hours &nbsp; <span aria-hidden="true">&#10003;</span> No obligation</p>
+        <p class="svc-hero-assure"><span class="svc-assure-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Free discovery call</span> &bull; <span class="svc-assure-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Reply within 24 hours</span> &bull; <span class="svc-assure-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> No obligation</span></p>
       </div>
       <?php if (!empty($service['cover_image'])): ?>
         <figure class="svc-hero-media">
@@ -199,10 +199,24 @@ require __DIR__ . '/includes/header.php';
           <p class="svc-sticky-price"><span>Pricing</span>Custom quote</p>
         <?php endif; ?>
         <ul class="svc-sticky-list">
-          <?php if (!empty($service['turnaround'])): ?><li><span aria-hidden="true">&#9201;</span> <?= e($service['turnaround']) ?> delivery</li><?php endif; ?>
-          <li><span aria-hidden="true">&#128172;</span> Free 20-min discovery call</li>
-          <li><span aria-hidden="true">&#128203;</span> Clear scope &amp; fixed quote</li>
-          <li><span aria-hidden="true">&#128260;</span> Revisions included</li>
+          <?php if (!empty($service['turnaround'])): ?>
+            <li>
+              <svg class="svc-list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span><?= e($service['turnaround']) ?> delivery</span>
+            </li>
+          <?php endif; ?>
+          <li>
+            <svg class="svc-list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Free 20-min discovery call</span>
+          </li>
+          <li>
+            <svg class="svc-list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Clear scope &amp; fixed quote</span>
+          </li>
+          <li>
+            <svg class="svc-list-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span>Revisions included</span>
+          </li>
         </ul>
         <a href="#book" class="btn btn-primary svc-btn-block">Book this service</a>
         <?php if ($whatsappDigits !== '' && strlen($whatsappDigits) >= 8): ?>
@@ -332,7 +346,7 @@ require __DIR__ . '/includes/header.php';
     <div class="svc-book-card">
       <?php if ($bookingSuccess): ?>
         <div class="svc-book-success" role="status">
-          <span class="svc-book-success-icon" aria-hidden="true">&#10003;</span>
+          <span class="svc-book-success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><polyline points="20 6 9 17 4 12"/></svg></span>
           <h3>Request received!</h3>
           <p>Thank you — your booking request for <strong><?= e($service['title']) ?></strong> is in. I'll reply to your email within 24 hours.</p>
           <a href="<?= e(SITE_ROOT_URL) ?>/page.php?view=work" class="btn btn-ghost">Browse more work meanwhile</a>
@@ -374,7 +388,7 @@ require __DIR__ . '/includes/header.php';
           <label>Estimated budget<input type="text" name="budget" maxlength="80" placeholder="e.g. NPR 50,000 or a range" value="<?= e($old['budget'] ?? '') ?>"></label>
           <label>Project details *<textarea name="message" required maxlength="4000" rows="5" placeholder="Your goals, audience, deadlines, links to references…"><?= e($old['message'] ?? '') ?></textarea></label>
           <button type="submit" class="btn btn-primary svc-btn-block svc-btn-lg">Send booking request <span aria-hidden="true">&rarr;</span></button>
-          <p class="svc-form-note">&#128274; Your details stay private and are only used to reply to you.</p>
+          <p class="svc-form-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline-block;vertical-align:-1px;margin-right:5px;" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Your details stay private and are only used to reply to you.</p>
         </form>
       <?php endif; ?>
     </div>

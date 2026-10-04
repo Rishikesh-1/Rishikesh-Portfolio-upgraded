@@ -18,13 +18,12 @@ $active = $active ?? '';
     <p class="display" style="font-size:1.1rem;margin-bottom:20px;">Dashboard</p>
     <a href="dashboard.php" class="<?= $active === 'overview' ? 'active' : '' ?>">Overview</a>
     <a href="projects.php" class="<?= $active === 'projects' ? 'active' : '' ?>">Projects</a>
-    <a href="taxonomy.php?type=categories" class="<?= $active === 'taxonomy-categories' ? 'active' : '' ?>">Project categories</a>
-    <a href="taxonomy.php?type=tags" class="<?= $active === 'taxonomy-tags' ? 'active' : '' ?>">Project tags</a>
     <a href="blog.php" class="<?= $active === 'blog' ? 'active' : '' ?>">Blog</a>
     <a href="media.php" class="<?= $active === 'media' ? 'active' : '' ?>">Media library</a>
     <a href="manage.php?section=experience" class="<?= $active === 'experience' ? 'active' : '' ?>">Experience</a>
     <a href="manage.php?section=skills" class="<?= $active === 'skills' ? 'active' : '' ?>">Skills</a>
     <a href="manage.php?section=services" class="<?= $active === 'services' ? 'active' : '' ?>">Services</a>
+    <a href="manage.php?section=products" class="<?= $active === 'products' ? 'active' : '' ?>">Projects for sale</a>
     <a href="manage.php?section=social" class="<?= $active === 'social' ? 'active' : '' ?>">Social links</a>
     <a href="manage.php?section=social_posts" class="<?= $active === 'social_posts' ? 'active' : '' ?>">Social content</a>
     <a href="manage.php?section=testimonials" class="<?= $active === 'testimonials' ? 'active' : '' ?>">Testimonials</a>

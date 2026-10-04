@@ -8,10 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 verify_csrf();
 
-$name    = trim($_POST['name'] ?? '');
-$email   = trim($_POST['email'] ?? '');
-$subject = trim($_POST['subject'] ?? '');
-$message = trim($_POST['message'] ?? '');
+$name     = trim($_POST['name'] ?? '');
+$email    = trim($_POST['email'] ?? '');
+$subject  = trim($_POST['subject'] ?? '');
+$message  = trim($_POST['message'] ?? '');
+$returnTo = trim($_POST['return_to'] ?? '');
+$redirectUrl = ($returnTo === 'contact-page') ? (SITE_ROOT_URL . '/page.php?view=contact') : (SITE_ROOT_URL . '/#contact');
 
 $errors = [];
 if ($name === '' || mb_strlen($name) > 120) $errors[] = 'Please enter a valid name.';
@@ -21,7 +23,7 @@ if ($message === '' || mb_strlen($message) > 4000) $errors[] = 'Please enter a m
 if ($errors) {
     // Simple bounce-back; a real deployment could re-render the form with $errors.
     $_SESSION['contact_errors'] = $errors;
-    header('Location: ' . SITE_ROOT_URL . '/#contact');
+    header('Location: ' . $redirectUrl);
     exit;
 }
 
@@ -52,5 +54,5 @@ $stmt->execute([
     }
 
 $_SESSION['contact_success'] = true;
-header('Location: ' . SITE_ROOT_URL . '/#contact');
+header('Location: ' . $redirectUrl);
 exit;

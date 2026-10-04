@@ -7,7 +7,14 @@
 $page_title       = $page_title       ?? get_setting($pdo, 'site_title', 'Rishikesh Rana');
 $page_description = $page_description ?? get_setting($pdo, 'site_description', '');
 $page_image       = $page_image       ?? get_setting($pdo, 'og_image', '');
-$page_url         = $page_url         ?? (SITE_ROOT_URL . $_SERVER['REQUEST_URI']);
+$rawUri           = $_SERVER['REQUEST_URI'] ?? '';
+$rootPath         = parse_url(SITE_ROOT_URL, PHP_URL_PATH) ?: '';
+if ($rootPath !== '' && str_starts_with($rawUri, $rootPath)) {
+    $cleanUri = substr($rawUri, strlen($rootPath));
+} else {
+    $cleanUri = $rawUri;
+}
+$page_url         = $page_url         ?? (rtrim(SITE_ROOT_URL, '/') . '/' . ltrim($cleanUri, '/'));
 $favicon          = get_setting($pdo, 'site_favicon', '');
 ?><!DOCTYPE html>
 <html lang="en">

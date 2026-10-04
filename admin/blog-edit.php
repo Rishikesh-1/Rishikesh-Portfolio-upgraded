@@ -111,10 +111,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
       </div>
 
       <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -122,7 +122,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
-      <input type="file" id="cover_image_file_input" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="clearMediaSelection('cover_image')">
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
     </div>
     <div class="form-group"><label>Tags</label><input type="text" name="tags" maxlength="255" value="<?= e($_POST['tags'] ?? '') ?>"></div>
   </div>
@@ -148,4 +148,57 @@ require __DIR__ . '/includes/admin-header.php';
   <button type="submit" class="btn btn-primary">Update blog post</button>
   <a href="blog.php" class="btn btn-ghost">Cancel</a>
 </form>
+
+<?php
+$cStmt = $pdo->prepare('SELECT * FROM blog_comments WHERE post_id = :id ORDER BY created_at DESC');
+$cStmt->execute([':id' => $id]);
+$postComments = $cStmt->fetchAll();
+?>
+
+<div class="admin-card" id="comments" style="margin-top:var(--space-4);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <h3 style="margin:0;font-size:1.15rem;">Comments on this post (<?= count($postComments) ?>)</h3>
+    <?php if ($post['is_published']): ?>
+      <a href="../post.php?id=<?= (int)$post['id'] ?>#comments" target="_blank" style="color:var(--accent);font-size:0.85rem;">View on live site &rarr;</a>
+    <?php endif; ?>
+  </div>
+
+  <?php if (isset($_GET['deleted'])): ?>
+    <div class="alert alert-success" style="margin-bottom:14px;">Comment deleted successfully.</div>
+  <?php endif; ?>
+
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th style="width:180px;">Author</th>
+        <th>Comment</th>
+        <th style="width:160px;">Date</th>
+        <th style="width:80px;text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php foreach ($postComments as $c): ?>
+        <tr>
+          <td><strong><?= e($c['name']) ?></strong></td>
+          <td style="font-size:0.9rem;line-height:1.5;"><?= nl2br(e($c['body'])) ?></td>
+          <td style="color:var(--text-muted);font-size:0.85rem;"><?= date('M j, Y, g:i a', strtotime($c['created_at'])) ?></td>
+          <td style="text-align:right;">
+            <form method="POST" action="comment-delete.php" style="display:inline;" onsubmit="return confirm('Delete this comment?');">
+              <?= csrf_field() ?>
+              <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+              <input type="hidden" name="return_url" value="blog-edit.php?id=<?= (int)$post['id'] ?>#comments">
+              <button type="submit" style="background:none;border:0;padding:0;color:#ff7442;cursor:pointer;font:inherit;font-size:0.88rem;">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+      <?php if (empty($postComments)): ?>
+        <tr>
+          <td colspan="4" style="color:var(--text-muted);text-align:center;padding:24px 12px;">No comments on this post yet.</td>
+        </tr>
+      <?php endif; ?>
+    </tbody>
+  </table>
+</div>
+
 <?php require __DIR__ . '/includes/admin-footer.php'; ?>

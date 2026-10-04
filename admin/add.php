@@ -110,10 +110,10 @@ require __DIR__ . '/includes/admin-header.php';
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
         <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Project Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          📁 Choose from Media Library
+          Choose from Media Library
         </button>
         <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">✕ Clear</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
       </div>
 
       <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
@@ -121,7 +121,7 @@ require __DIR__ . '/includes/admin-header.php';
       </div>
 
       <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
-      <input type="file" id="cover_image_file_input" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="clearMediaSelection('cover_image')">
+      <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
     </div>
   </div>
 
@@ -136,7 +136,7 @@ require __DIR__ . '/includes/admin-header.php';
     <div class="form-row">
       <?php foreach ($tags as $tag): ?><label style="font-weight:400;"><input type="checkbox" name="tag_ids[]" value="<?= (int)$tag['id'] ?>" style="width:auto;display:inline;margin-right:6px;" <?= in_array((int)$tag['id'], array_map('intval', $_POST['tag_ids'] ?? []), true) ? 'checked' : '' ?>><?= e($tag['name']) ?></label><?php endforeach; ?>
     </div>
-    <?php if (!$tags): ?><p style="color:var(--text-muted);">Create tags from Project tags in the sidebar first.</p><?php endif; ?>
+    <?php if (!$tags): ?><p style="color:var(--text-muted);">No tags yet. You can create tags in <a href="taxonomy.php?type=tags" target="_blank" style="color:var(--accent);">Project Tags</a>.</p><?php endif; ?>
   </div>
 
   <div class="form-group">

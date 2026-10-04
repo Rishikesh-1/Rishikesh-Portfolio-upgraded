@@ -11,15 +11,30 @@ $projects = $pdo->query(
      ORDER BY p.sort_order ASC, p.created_at DESC'
 )->fetchAll();
 
+$catCount = (int)$pdo->query('SELECT COUNT(*) FROM project_categories')->fetchColumn();
+$tagCount = (int)$pdo->query('SELECT COUNT(*) FROM tags')->fetchColumn();
+
 $active = 'projects';
 require __DIR__ . '/includes/admin-header.php';
 ?>
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-3);">
-  <h1 class="display" style="font-size:1.6rem;">Projects</h1>
-  <a href="add.php" class="btn btn-primary">+ Add project</a>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);flex-wrap:wrap;gap:12px;">
+  <h1 class="display" style="font-size:1.6rem;margin:0;">Projects</h1>
+  <a href="add.php" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add project
+  </a>
+</div>
+
+<!-- Project sub-nav tabs -->
+<div style="display:flex;gap:8px;margin-bottom:var(--space-3);border-bottom:1px solid var(--hairline);padding-bottom:14px;flex-wrap:wrap;">
+  <a href="projects.php" class="btn btn-primary btn-sm">All Projects (<?= count($projects) ?>)</a>
+  <a href="taxonomy.php?type=categories" class="btn btn-secondary btn-sm">Project Categories (<?= $catCount ?>)</a>
+  <a href="taxonomy.php?type=tags" class="btn btn-secondary btn-sm">Project Tags (<?= $tagCount ?>)</a>
 </div>
 
 <?php if (isset($_GET['deleted'])): ?><div class="alert alert-success">Project deleted.</div><?php endif; ?>
+<?php if (isset($_GET['added'])): ?><div class="alert alert-success">Project added successfully.</div><?php endif; ?>
+<?php if (isset($_GET['updated'])): ?><div class="alert alert-success">Project updated successfully.</div><?php endif; ?>
 
 <div class="admin-card" style="padding:0;">
   <table class="admin-table">

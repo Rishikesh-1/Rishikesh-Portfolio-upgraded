@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config/config.php';
 ensure_services_schema($pdo);
+ensure_products_schema($pdo);
 
 $view = $_GET['view'] ?? 'about';
 $pages = [
@@ -53,6 +54,8 @@ require __DIR__ . '/includes/header.php';
   <?php
   $items = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC')->fetchAll();
   $serviceProjectCounts = service_project_counts($pdo);
+  $saleProducts = $pdo->query('SELECT * FROM products WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC, id DESC')->fetchAll();
+  $contactPhone = get_setting($pdo, 'contact_phone', '');
   ?>
   <section class="section">
     <div class="svc-grid">
@@ -61,6 +64,26 @@ require __DIR__ . '/includes/header.php';
       <?php endforeach; ?>
     </div>
     <?php if (!$items): ?><p class="empty-state">Services will appear here as they are added from the dashboard.</p><?php endif; ?>
+
+    <?php if ($saleProducts): ?>
+      <div style="margin-top:64px;padding-top:48px;border-top:1px solid var(--hairline);">
+        <div class="section-head" style="text-align:left;">
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;background:rgba(255,71,87,0.12);border:1px solid rgba(255,71,87,0.3);color:#ff4757;font-size:0.76rem;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Ready-to-Deploy &bull; Special Offer</span>
+          </div>
+          <h2>Turnkey Projects &amp; Apps for Sale</h2>
+          <p style="color:var(--text-muted);font-size:1rem;max-width:640px;margin-top:4px;">
+            Looking for a turnkey solution? Purchase complete pre-built websites, apps, and portfolio systems at fixed promotional prices. Deploy as-is or request custom additions.
+          </p>
+        </div>
+        <div class="prod-grid">
+          <?php foreach ($saleProducts as $i => $prod): ?>
+            <?php render_product_card($prod, $i, $contactPhone ?? ''); ?>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    <?php endif; ?>
   </section>
 <?php elseif ($view === 'experience'): ?>
   <?php $items = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll(); ?>
@@ -77,8 +100,58 @@ require __DIR__ . '/includes/header.php';
   <section class="section"><div class="testimonial-grid"><?php foreach ($items as $item): ?><article class="testimonial-card"><?php if (!empty($item['client_photo'])): ?><img class="testimonial-photo" src="<?= e(UPLOAD_URL . $item['client_photo']) ?>" alt="<?= e($item['client_name']) ?>" loading="lazy" width="64" height="64"><?php endif; ?><p class="testimonial-quote">&ldquo;<?= e($item['quote']) ?>&rdquo;</p><p class="testimonial-name"><?= e($item['client_name']) ?></p><p class="testimonial-role"><?= e($item['client_role'] ?? '') ?></p></article><?php endforeach; ?></div><?php if (!$items): ?><p class="empty-state">Testimonials will appear here as they are added from the dashboard.</p><?php endif; ?></section>
 <?php elseif ($view === 'social-content'): ?>
   <?php require __DIR__ . '/includes/social-showcase.php'; ?>
-<?php elseif ($view === 'contact'): ?>
-  <section class="section contact-page-grid"><div><p class="page-copy">Tell me what you are building, where it is stuck, and what a useful outcome looks like.</p><p class="contact-detail"><?= e(get_setting($pdo, 'contact_email')) ?></p><p class="contact-detail"><?= e(get_setting($pdo, 'location')) ?></p></div><div><?php if (!empty($_SESSION['contact_success'])): unset($_SESSION['contact_success']); ?><div class="contact-status contact-status-success" role="status">Message sent successfully. I&rsquo;ll get back to you soon.</div><?php endif; ?><?php if (!empty($_SESSION['contact_errors'])): $contactErrors = $_SESSION['contact_errors']; unset($_SESSION['contact_errors']); ?><div class="contact-status contact-status-error" role="alert"><?php foreach ($contactErrors as $contactError): ?><?= e($contactError) ?><br><?php endforeach; ?></div><?php endif; ?><form class="contact-form" action="contact-submit.php" method="POST"><?= csrf_field() ?><input type="text" name="name" placeholder="Your name" required maxlength="120"><input type="email" name="email" placeholder="Your email" required maxlength="150"><input type="text" name="subject" placeholder="Subject" maxlength="200"><textarea name="message" placeholder="Message" required maxlength="4000"></textarea><button type="submit" class="btn btn-primary">Send message</button></form></div></section>
+<?php elseif ($view === 'contact'): 
+  $contactEmail = get_setting($pdo, 'contact_email');
+  $contactPhone = get_setting($pdo, 'contact_phone');
+  $location = get_setting($pdo, 'location');
+  $whatsappDigits = preg_replace('/\D+/', '', (string)$contactPhone);
+?>
+  <section class="section contact-page-grid">
+    <div>
+      <p class="page-copy">Tell me what you are building, where it is stuck, and what a useful outcome looks like.</p>
+      
+      <?php if ($contactEmail): ?>
+        <p style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin:18px 0 4px;">Email</p>
+        <p class="contact-detail"><a href="mailto:<?= e($contactEmail) ?>" style="color:var(--text);"><?= e($contactEmail) ?></a></p>
+      <?php endif; ?>
+
+      <?php if ($contactPhone): ?>
+        <p style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin:18px 0 4px;">Phone</p>
+        <p class="contact-detail"><a href="tel:<?= e($contactPhone) ?>" style="color:var(--text);"><?= e($contactPhone) ?></a></p>
+      <?php endif; ?>
+
+      <?php if ($location): ?>
+        <p style="color:var(--text-muted);font-size:0.8rem;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin:18px 0 4px;">Location</p>
+        <p class="contact-detail"><?= e($location) ?></p>
+      <?php endif; ?>
+
+      <?php if ($whatsappDigits !== '' && strlen($whatsappDigits) >= 8): ?>
+        <div style="margin-top:24px;">
+          <a href="https://wa.me/<?= e($whatsappDigits) ?>?text=<?= rawurlencode('Hi! I would like to connect regarding a project.') ?>" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Chat on WhatsApp
+          </a>
+        </div>
+      <?php endif; ?>
+    </div>
+    <div>
+      <?php if (!empty($_SESSION['contact_success'])): unset($_SESSION['contact_success']); ?>
+        <div class="contact-status contact-status-success" role="status">Message sent successfully. I&rsquo;ll get back to you soon.</div>
+      <?php endif; ?>
+      <?php if (!empty($_SESSION['contact_errors'])): $contactErrors = $_SESSION['contact_errors']; unset($_SESSION['contact_errors']); ?>
+        <div class="contact-status contact-status-error" role="alert"><?php foreach ($contactErrors as $contactError): ?><?= e($contactError) ?><br><?php endforeach; ?></div>
+      <?php endif; ?>
+      <form class="contact-form" action="contact-submit.php" method="POST">
+        <?= csrf_field() ?>
+        <input type="hidden" name="return_to" value="contact-page">
+        <input type="text" name="name" placeholder="Your name" required maxlength="120">
+        <input type="email" name="email" placeholder="Your email" required maxlength="150">
+        <input type="text" name="subject" placeholder="Subject" maxlength="200">
+        <textarea name="message" placeholder="Message" required maxlength="4000"></textarea>
+        <button type="submit" class="btn btn-primary">Send message</button>
+      </form>
+    </div>
+  </section>
 <?php endif; ?>
 <?php if ($view !== 'contact'): ?>
   <?php require __DIR__ . '/includes/clients-slider.php'; ?>

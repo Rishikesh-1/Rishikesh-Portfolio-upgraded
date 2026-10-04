@@ -9,26 +9,29 @@
   .media-modal-container { width: 100%; max-width: 1060px; height: 85vh; max-height: 720px; background: rgba(15, 23, 42, 0.98); border: 1px solid var(--hairline, rgba(150, 180, 255, .2)); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; }
   .media-modal-header { padding: 16px 22px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
   .media-modal-tabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); }
-  .media-tab-btn { padding: 6px 14px; border: 0; background: transparent; color: var(--text-muted, #aab5d1); font-size: 0.82rem; font-weight: 600; border-radius: 6px; cursor: pointer; }
+  .media-tab-btn { padding: 6px 14px; border: 0; background: transparent; color: var(--text-muted, #aab5d1); font-size: 0.82rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
   .media-tab-btn.active { background: var(--accent, #5ce1ff); color: #070b16; }
   .media-modal-close { background: transparent; border: 0; color: var(--text-muted, #aab5d1); font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0 4px; }
   .media-modal-close:hover { color: var(--text, #EDEEF0); }
-  .media-modal-body { flex: 1; min-height: 0; overflow: hidden; position: relative; }
-  .media-tab-content { height: 100%; display: none; flex-direction: column; }
+  .media-modal-body { flex: 1; min-height: 0; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .media-tab-content { flex: 1; min-height: 0; display: none; flex-direction: column; }
   .media-tab-content.active { display: flex; }
   .media-modal-toolbar { padding: 14px 22px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-shrink: 0; }
   .media-modal-toolbar input { width: 100%; max-width: 320px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.3); color: var(--text, #EDEEF0); font-size: 0.85rem; }
   .media-modal-main-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
   .media-modal-grid-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 18px 22px; }
   .media-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
-  .media-modal-item { aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.4); overflow: hidden; position: relative; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; }
-  .media-modal-item:hover { border-color: var(--accent, #5ce1ff); }
+  .media-modal-item { aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.4); overflow: hidden; position: relative; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+  .media-modal-item:hover { border-color: var(--accent, #5ce1ff); transform: translateY(-2px); }
   .media-modal-item.is-selected { border-color: var(--accent, #5ce1ff); box-shadow: 0 0 0 2px rgba(92, 225, 255, 0.4); }
   .media-modal-item img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
   .media-modal-sidebar { width: 310px; flex-shrink: 0; border-left: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.25); padding: 18px; overflow-y: auto; display: flex; flex-direction: column; }
   .media-modal-sidebar-thumb { width: 100%; height: 160px; max-height: 160px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px; margin-bottom: 14px; }
   .media-modal-sidebar-thumb img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
   .media-modal-footer { padding: 14px 22px; border-top: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: rgba(0, 0, 0, 0.2); }
+  
+  .media-modal-dropzone { flex: 1; margin: 32px; border: 2px dashed rgba(92, 225, 255, 0.35); border-radius: 16px; background: rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 24px; transition: all 0.2s ease; cursor: pointer; }
+  .media-modal-dropzone:hover, .media-modal-dropzone.is-dragover { border-color: var(--accent, #5ce1ff); background: rgba(92, 225, 255, 0.08); }
 </style>
 
 <!-- Media Library Universal Modal -->
@@ -88,17 +91,15 @@
       </div>
 
       <!-- TAB: UPLOAD -->
-      <div class="media-tab-content" id="media-tab-upload" style="display:none;">
-        <div class="media-modal-dropzone" id="media-modal-dropzone">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;color:var(--accent);margin-bottom:12px;" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <h3 style="margin-bottom:6px;">Upload a New Image</h3>
-          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:16px;">Drag and drop an image file here, or click Browse</p>
-          <div>
-            <input type="file" id="media-modal-upload-input" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" style="max-width:320px;margin:0 auto 10px;">
-          </div>
-          <button type="button" class="btn btn-primary" id="media-modal-do-upload-btn" onclick="mediaModalTriggerUpload()">Upload &amp; Select</button>
-          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:14px;">Supported: JPG, PNG, WEBP, SVG, GIF (Up to 10MB)</p>
-          <div id="media-modal-upload-status" style="margin-top:14px;display:none;padding:10px 14px;border-radius:var(--radius);font-size:0.85rem;"></div>
+      <div class="media-tab-content" id="media-tab-upload">
+        <div class="media-modal-dropzone" id="media-modal-dropzone" onclick="document.getElementById('media-modal-upload-input').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:52px;height:52px;color:var(--accent);margin-bottom:14px;" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <h3 style="margin-bottom:6px;font-size:1.2rem;">Upload a New Image</h3>
+          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:18px;">Drag and drop an image file here, or click to browse</p>
+          <input type="file" id="media-modal-upload-input" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" style="display:none;">
+          <button type="button" class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('media-modal-upload-input').click();">Browse Computer</button>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:16px;">Supported formats: JPG, PNG, WEBP, SVG, GIF (Up to 10MB)</p>
+          <div id="media-modal-upload-status" style="margin-top:14px;display:none;padding:10px 16px;border-radius:var(--radius);font-size:0.85rem;"></div>
         </div>
       </div>
     </div>
@@ -125,6 +126,7 @@
     selectedMediaItem = null;
     sidebar.style.display = 'none';
     if (searchInput) searchInput.value = '';
+    if (uploadStatus) uploadStatus.style.display = 'none';
     mediaModalSwitchTab('browse');
 
     modal.style.display = 'flex';
@@ -158,7 +160,9 @@
       btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
     });
     document.querySelectorAll('.media-tab-content').forEach(content => {
-      content.style.display = content.id === ('media-tab-' + tabName) ? '' : 'none';
+      const isTarget = content.id === ('media-tab-' + tabName);
+      content.classList.toggle('active', isTarget);
+      content.style.display = isTarget ? 'flex' : 'none';
     });
   };
 

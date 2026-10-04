@@ -17,7 +17,7 @@ function render_inline_image_helper(string $targetName = 'body'): void
         <div class="inline-media-helper-action" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <button type="button" class="btn btn-primary btn-sm" onclick="mediaModalSwitchTab('browse'); openMediaLibrary({ targetName: '<?= e($targetName) ?>' });">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:4px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>📁 Open Media Library</span>
+            <span>Open Media Library</span>
           </button>
           <button type="button" class="btn btn-secondary btn-sm" onclick="mediaModalSwitchTab('upload'); openMediaLibrary({ targetName: '<?= e($targetName) ?>' });">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:inline-block;vertical-align:-2px;margin-right:4px;" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
