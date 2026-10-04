@@ -52,16 +52,18 @@ $definitions = [
             'description' => ['label' => 'Short Summary (Shown on homepage cards)', 'type' => 'textarea'],
             'cover_image' => ['label' => 'Cover Image / Showcase Graphic', 'type' => 'image'],
             'icon_class' => ['label' => 'Service Category Icon', 'type' => 'select', 'options' => array_keys(service_icon_options())],
-            'price_label' => ['label' => 'Starting Price (e.g. NPR 10,000 / mo, From $499)', 'maxlength' => 80],
+            'price_label' => ['label' => 'Starting Price (e.g. From $650 / mo, NPR 50,000)', 'maxlength' => 80],
             'turnaround' => ['label' => 'Delivery Timeline (e.g. 2–3 weeks, Monthly retainer)', 'maxlength' => 80],
             'deliverables' => ['label' => 'Key Deliverables (One per line with "-" or "•")', 'type' => 'textarea'],
             'tools' => ['label' => 'Tools & Platforms (Comma-separated: Premiere Pro, Canva, Meta Suite)', 'maxlength' => 255],
             'overview' => ['label' => 'In-Depth Overview & Scope (Shown on service detail page)', 'type' => 'textarea'],
+            'meta_title' => ['label' => 'SEO Meta Title (Optional)', 'maxlength' => 180],
+            'meta_description' => ['label' => 'SEO Meta Description (Optional)', 'maxlength' => 255],
             'is_featured' => ['label' => 'Featured service (Highlighted card with badge)', 'type' => 'checkbox', 'default' => 0],
             'is_visible' => ['label' => 'Visible on live site', 'type' => 'checkbox', 'default' => 1],
             'sort_order' => ['label' => 'Display order', 'type' => 'number', 'default' => 0],
         ],
-        'columns' => ['cover_image', 'title', 'price_label', 'is_featured', 'is_visible'],
+        'columns' => ['cover_image', 'title', 'price_label', 'turnaround', 'is_featured', 'is_visible'],
     ],
     'social' => [
         'title' => 'Social links',
@@ -368,7 +370,7 @@ if ($action === 'add' || $action === 'edit') {
       <?php endforeach; ?>
 
       <?php if ($section === 'services'): 
-          $allProjects = $pdo->query("SELECT id, title, category FROM projects ORDER BY sort_order ASC, id DESC")->fetchAll();
+          $allProjects = $pdo->query("SELECT p.id, p.title, c.name AS category FROM projects p LEFT JOIN project_categories c ON c.id = p.category_id ORDER BY p.sort_order ASC, p.id DESC")->fetchAll();
           $linkedProjectIds = [];
           if ($action === 'edit' && $id) {
               $pStmt = $pdo->prepare("SELECT project_id FROM service_projects WHERE service_id = :sid");
