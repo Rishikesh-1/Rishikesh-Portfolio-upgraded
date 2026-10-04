@@ -47,7 +47,7 @@ require __DIR__ . '/includes/header.php';
     <div class="hero-actions">
       <a href="#work" class="btn btn-primary">See my work</a>
       <?php if (!empty($about['resume_file'])): ?>
-        <a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" class="btn btn-ghost" download>Download CV</a>
+        <a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" class="btn btn-ghost" download>Download résumé</a>
       <?php endif; ?>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
@@ -94,21 +94,21 @@ if (!empty($bioWords) && count($bioWords) > 150) {
   </div>
   <div class="work-grid">
     <?php foreach ($projects as $i => $p): ?>
-      <article class="project-card<?= $p['is_featured'] ? ' featured' : '' ?>" data-project-card data-project-title="<?= e($p['title']) ?>" data-project-description="<?= e($p['description'] ?: $p['short_description'] ?: 'A focused project built with strategy, craft, and measurable intent.') ?>" data-project-category="<?= e($p['category_name'] ?? 'Project') ?>" data-project-image="<?= e($p['cover_image'] ? UPLOAD_URL . $p['cover_image'] : '') ?>">
+      <article class="project-card<?= $p['is_featured'] ? ' featured' : '' ?>">
         <div class="project-media">
           <?php if ($p['cover_image']): ?>
-            <img src="<?= e(UPLOAD_URL . $p['cover_image']) ?>" alt="<?= e($p['title']) ?>" loading="lazy" width="640" height="400">
+            <a class="project-image-link" href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($p['slug'])) ?>" aria-label="View project: <?= e($p['title']) ?>"><img src="<?= e(UPLOAD_URL . $p['cover_image']) ?>" alt="<?= e($p['title']) ?>" loading="lazy" width="640" height="400"></a>
           <?php endif; ?>
         </div>
         <div class="project-body">
           <?php if ($p['category_name']): ?><p class="project-cat"><?= e($p['category_name']) ?></p><?php endif; ?>
-          <h3 class="project-title"><?= e($p['title']) ?></h3>
-          <?php if ($p['short_description']): ?><p class="project-desc"><?= e($p['short_description']) ?></p><?php endif; ?>
+          <h3 class="project-title"><a href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($p['slug'])) ?>"><?= e($p['title']) ?></a></h3>
+          <?php if ($p['short_description']): ?><div class="project-desc"><?= limit_rich_text_words((string) $p['short_description'], 20) ?></div><?php endif; ?>
           <div class="project-links">
-            <?php if ($p['external_url']): ?><a href="<?= e($p['external_url']) ?>" target="_blank" rel="noopener noreferrer">Visit</a><?php endif; ?>
+            <?php if ($p['external_url']): ?><a href="<?= e($p['external_url']) ?>" target="_blank" rel="noopener noreferrer">Visit live site</a><?php endif; ?>
             <?php if ($p['github_url']): ?><a href="<?= e($p['github_url']) ?>" target="_blank" rel="noopener noreferrer">GitHub</a><?php endif; ?>
           </div>
-          <button class="project-open" type="button" data-project-open>Explore project <span aria-hidden="true">↗</span></button>
+          <a class="project-open" href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($p['slug'])) ?>">Explore project <span aria-hidden="true">&#8599;</span></a>
         </div>
       </article>
     <?php endforeach; ?>
@@ -217,7 +217,7 @@ if (!empty($bioWords) && count($bioWords) > 150) {
   </div>
   <div class="blog-grid">
     <?php foreach ($recentPosts as $post): ?>
-      <a class="blog-card" href="/post.php?slug=<?= urlencode($post['slug']) ?>">
+      <a class="blog-card" href="<?= e(SITE_ROOT_URL . '/post.php?slug=' . urlencode($post['slug'])) ?>">
         <?php if ($post['cover_image']): ?>
           <div class="blog-media"><img src="<?= e(UPLOAD_URL . $post['cover_image']) ?>" alt="<?= e($post['title']) ?>" loading="lazy"></div>
         <?php endif; ?>

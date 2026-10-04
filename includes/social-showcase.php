@@ -44,6 +44,6 @@ $socialPosts = $pdo->query($socialQuery)->fetchAll();
     <?php endforeach; ?>
     </div>
   <?php if (!$isAllSocialContent): ?></div><?php endif; ?>
-  <?php if (!$isAllSocialContent): ?><a class="btn btn-ghost section-cta section-action" href="<?= e(SITE_ROOT_URL) ?>/page.php?view=social-content">Explore social content <span aria-hidden="true">&rarr;</span></a><?php endif; ?>
+  <?php if (!$isAllSocialContent): ?><a class="section-action" href="<?= e(SITE_ROOT_URL) ?>/page.php?view=social-content">View all social content <span aria-hidden="true">&rarr;</span></a><?php endif; ?>
 </section>
 <?php endif; ?>

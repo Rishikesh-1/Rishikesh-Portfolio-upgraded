@@ -65,19 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  document.querySelectorAll('[data-experience-toggle]').forEach(function (experienceToggle) {
-    var panel = document.getElementById(experienceToggle.getAttribute('aria-controls'));
-    if (!panel) return;
-    panel.inert = true;
-    experienceToggle.addEventListener('click', function () {
-      var isOpen = experienceToggle.getAttribute('aria-expanded') === 'true';
-      var item = experienceToggle.closest('.timeline-item');
-      experienceToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
-      panel.inert = isOpen;
-      if (item) item.classList.toggle('is-open', !isOpen);
-    });
-  });
-
   // Reveal hero name letters/words with a staggered delay if data-reveal is present.
   document.querySelectorAll('[data-reveal]').forEach(function (el, i) {
     el.style.animationDelay = (i * 0.06) + 's';
@@ -106,27 +93,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   var skillTarget = document.querySelector('[data-skill-rotate]');
-  if (skillTarget) {
-    var skills = JSON.parse(skillTarget.dataset.skills || '[]').filter(function (skill) {
-      return typeof skill === 'string' && skill.trim() !== '';
-    });
-    if (skills.length) {
-      var skillIndex = 0;
-      if (reduceMotion || skills.length === 1) {
-        skillTarget.textContent = skills[0];
-      } else {
-        window.setInterval(function () {
-          skillTarget.style.opacity = '0';
-          skillTarget.style.transform = 'translateY(5px)';
-          window.setTimeout(function () {
-            skillIndex = (skillIndex + 1) % skills.length;
-            skillTarget.textContent = skills[skillIndex];
-            skillTarget.style.opacity = '1';
-            skillTarget.style.transform = 'translateY(0)';
-          }, 220);
-        }, 2800);
-      }
-    }
+  if (skillTarget && !reduceMotion) {
+    var skills = ['creative direction', 'digital marketing', 'web experiences', 'team leadership'];
+    var skillIndex = 0;
+    window.setInterval(function () {
+      skillTarget.style.opacity = '0';
+      skillTarget.style.transform = 'translateY(5px)';
+      window.setTimeout(function () {
+        skillIndex = (skillIndex + 1) % skills.length;
+        skillTarget.textContent = skills[skillIndex];
+        skillTarget.style.opacity = '1';
+        skillTarget.style.transform = 'translateY(0)';
+      }, 220);
+    }, 2800);
   }
 
   document.querySelectorAll('[data-social-slider]').forEach(function (slider) {
