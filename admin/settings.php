@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $stmt->execute([':n' => $fullName, ':r' => $roleTitle, ':t' => $tagline, ':b' => $bio, ':p' => $profileImage, ':rf' => $resumeFile]);
 
-        $settingsToSave = ['hero_focus_1', 'hero_focus_2', 'hero_focus_3', 'site_logo_text', 'site_title', 'site_description', 'contact_email', 'contact_notification_email', 'contact_phone', 'location', 'google_analytics_id'];
+        $settingsToSave = ['hero_focus_1', 'hero_focus_2', 'hero_focus_3', 'site_logo_text', 'resume_button_text', 'site_title', 'site_description', 'contact_email', 'contact_notification_email', 'contact_phone', 'location', 'google_analytics_id'];
         $upd = $pdo->prepare('INSERT INTO site_settings (setting_key, setting_value) VALUES (:k, :v) ON DUPLICATE KEY UPDATE setting_value = :v2');
         foreach ($settingsToSave as $key) {
             $val = trim($_POST[$key] ?? '');
@@ -115,6 +115,10 @@ require __DIR__ . '/includes/admin-header.php';
       <label>Résumé (PDF)</label>
       <?php if ($about['resume_file']): ?><p style="font-size:0.85rem;margin-bottom:8px;"><a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" style="color:var(--accent);">Current résumé &rarr;</a></p><?php endif; ?>
       <input type="file" name="resume_file" accept=".pdf">
+      <div style="margin-top:8px;">
+        <label style="font-size:0.82rem;color:var(--text-muted);">Button label on homepage</label>
+        <input type="text" name="resume_button_text" value="<?= e($settings['resume_button_text'] ?? 'Download CV') ?>" placeholder="Download CV" maxlength="60" style="margin-top:4px;">
+      </div>
     </div>
     <div class="form-group">
       <label>Browser tab icon</label>

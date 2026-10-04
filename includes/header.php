@@ -33,7 +33,7 @@ $favicon          = get_setting($pdo, 'site_favicon', '');
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= e(SITE_ROOT_URL) ?>/assets/css/style.css?v=20261003-21">
+<link rel="stylesheet" href="<?= e(SITE_ROOT_URL) ?>/assets/css/style.css?v=20261004-1">
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
 </head>
 <body class="<?= e($body_class ?? '') ?>" data-theme="dark">

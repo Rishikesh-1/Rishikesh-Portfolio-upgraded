@@ -57,7 +57,7 @@ require __DIR__ . '/includes/header.php';
     <div class="hero-actions">
       <a href="#work" class="btn btn-primary">See my work</a>
       <?php if (!empty($about['resume_file'])): ?>
-        <a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" class="btn btn-ghost" download>Download résumé</a>
+        <a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" class="btn btn-ghost" download><?= e(get_setting($pdo, 'resume_button_text', 'Download CV')) ?></a>
       <?php endif; ?>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
