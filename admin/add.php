@@ -100,8 +100,8 @@ require __DIR__ . '/includes/admin-header.php';
       </select>
     </div>
     <div class="form-group">
-      <label>Cover image (JPG, PNG, or WEBP — max 3MB)</label>
-      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp">
+      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
+      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif">
     </div>
   </div>
 

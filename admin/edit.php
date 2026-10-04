@@ -121,12 +121,12 @@ require __DIR__ . '/includes/admin-header.php';
       </select>
     </div>
     <div class="form-group">
-      <label>Cover image</label>
+      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
       <?php if ($project['cover_image']): ?>
         <img src="<?= e(UPLOAD_URL . $project['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;margin-bottom:8px;">
         <label style="font-weight:400;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;margin-right:6px;">Remove current image</label>
       <?php endif; ?>
-      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp">
+      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif">
     </div>
   </div>
 

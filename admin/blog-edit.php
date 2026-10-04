@@ -95,9 +95,9 @@ require __DIR__ . '/includes/admin-header.php';
   <div class="form-group"><label>Title</label><input type="text" name="title" required maxlength="200" value="<?= e($_POST['title'] ?? '') ?>"></div>
   <div class="form-row">
     <div class="form-group">
-      <label>Cover image</label>
+      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
       <?php if ($post['cover_image']): ?><img src="<?= e(UPLOAD_URL . $post['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;margin-bottom:8px;"><label style="font-weight:400;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;margin-right:6px;"> Remove current image</label><?php endif; ?>
-      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp">
+      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif">
     </div>
     <div class="form-group"><label>Tags</label><input type="text" name="tags" maxlength="255" value="<?= e($_POST['tags'] ?? '') ?>"></div>
   </div>

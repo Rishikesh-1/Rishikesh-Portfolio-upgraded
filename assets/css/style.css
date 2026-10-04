@@ -1164,4 +1164,11 @@ body[data-theme='light'] .clients-slider-title {
   border-color: var(--accent);
   color: var(--accent);
 }
+.inline-media-helper.is-dragover {
+  border-color: var(--accent);
+  background: rgba(92, 225, 255, 0.08);
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
 

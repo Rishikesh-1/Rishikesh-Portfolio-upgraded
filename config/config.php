@@ -10,9 +10,9 @@ define('APP_DEBUG', false);
 define('SITE_ROOT_URL', 'http://localhost/portfolio-cms'); // no trailing slash; change for production
 define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('UPLOAD_URL', SITE_ROOT_URL . '/uploads/');
-define('MAX_UPLOAD_BYTES', 3 * 1024 * 1024); // 3 MB
-define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/svg']);
-define('ALLOWED_IMAGE_EXTS', ['jpg', 'jpeg', 'png', 'webp', 'svg']);
+define('MAX_UPLOAD_BYTES', 10 * 1024 * 1024); // 10 MB
+define('ALLOWED_IMAGE_TYPES', ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/svg', 'image/gif', 'image/pjpeg', 'image/x-png', 'image/jpg']);
+define('ALLOWED_IMAGE_EXTS', ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif']);
 
 // Session timeout (seconds) for the admin dashboard.
 define('ADMIN_SESSION_TIMEOUT', 30 * 60); // 30 minutes idle timeout

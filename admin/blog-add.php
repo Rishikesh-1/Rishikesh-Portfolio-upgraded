@@ -84,7 +84,7 @@ require __DIR__ . '/includes/admin-header.php';
   <?= csrf_field() ?>
   <div class="form-group"><label>Title</label><input type="text" name="title" required maxlength="200" value="<?= e($_POST['title'] ?? '') ?>"></div>
   <div class="form-row">
-    <div class="form-group"><label>Cover image (JPG, PNG, or WEBP - max 3MB)</label><input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp"></div>
+    <div class="form-group"><label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label><input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif"></div>
     <div class="form-group"><label>Tags</label><input type="text" name="tags" maxlength="255" placeholder="design, marketing" value="<?= e($_POST['tags'] ?? '') ?>"></div>
   </div>
     <div class="form-group"><label>Excerpt (20-word preview)</label><textarea name="excerpt" rows="3" maxlength="300" class="<?= $excerptError !== '' ? 'field-invalid' : '' ?>" <?= $excerptError !== '' ? 'aria-invalid="true" aria-describedby="excerpt-error"' : '' ?>><?= e($_POST['excerpt'] ?? '') ?></textarea><?php if ($excerptError !== ''): ?><p class="field-error" id="excerpt-error" role="alert"><?= e($excerptError) ?></p><?php endif; ?></div>
