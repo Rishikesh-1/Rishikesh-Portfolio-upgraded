@@ -12,7 +12,8 @@ $projects = $pdo->query(
     LIMIT 3'
 )->fetchAll();
 
-$services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll();
+$services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC')->fetchAll();
+$serviceProjectCounts = service_project_counts($pdo);
 $experience = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll();
 $skills = $pdo->query('SELECT * FROM skills ORDER BY sort_order ASC')->fetchAll();
 $testimonials = $pdo->query('SELECT * FROM testimonials WHERE is_visible = 1 ORDER BY sort_order ASC LIMIT 6')->fetchAll();
@@ -134,17 +135,14 @@ if (!empty($bioWords) && count($bioWords) > 150) {
 <section class="section" id="services">
   <div class="section-head">
     <p class="eyebrow">What I Do</p>
-    <h2>Services</h2>
+    <h2>Services &amp; capabilities</h2>
   </div>
-  <div class="services-grid">
-    <?php foreach ($services as $s): ?>
-      <div class="service-item">
-        <h3><?= e($s['title']) ?></h3>
-        <p><?= e($s['description']) ?></p>
-        <?php if ($s['price_label']): ?><p class="service-price"><?= e($s['price_label']) ?></p><?php endif; ?>
-      </div>
+  <div class="svc-grid">
+    <?php foreach ($services as $i => $s): ?>
+      <?php render_service_card($s, $serviceProjectCounts[(int) $s['id']] ?? 0, $i); ?>
     <?php endforeach; ?>
   </div>
+  <a class="btn btn-ghost section-cta" style="margin-top:var(--space-3);" href="<?= e(SITE_ROOT_URL) ?>/page.php?view=services">Explore all services &amp; packages <span aria-hidden="true">&rarr;</span></a>
 </section>
 <?php endif; ?>
 

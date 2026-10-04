@@ -19,6 +19,11 @@ foreach ($posts as $p) {
     $urls[] = ['loc' => SITE_ROOT_URL . '/post.php?slug=' . urlencode($p['slug']), 'lastmod' => date('Y-m-d', strtotime($p['updated_at'])), 'priority' => '0.6'];
 }
 
+$servicesSitemap = $pdo->query("SELECT slug FROM services WHERE is_visible = 1 AND slug IS NOT NULL AND slug != ''")->fetchAll();
+foreach ($servicesSitemap as $s) {
+    $urls[] = ['loc' => SITE_ROOT_URL . '/service.php?slug=' . urlencode($s['slug']), 'priority' => '0.85'];
+}
+
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 foreach ($urls as $u) {

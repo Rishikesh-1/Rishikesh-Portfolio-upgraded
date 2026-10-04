@@ -49,8 +49,18 @@ require __DIR__ . '/includes/header.php';
     <?php foreach ($items as $item): ?><article class="project-card<?= $item['is_featured'] ? ' featured' : '' ?>"><div class="project-media"><?php if ($item['cover_image']): ?><a class="project-image-link" href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($item['slug'])) ?>" aria-label="View project: <?= e($item['title']) ?>"><img src="<?= e(UPLOAD_URL . $item['cover_image']) ?>" alt="<?= e($item['title']) ?>" loading="lazy" width="640" height="400"></a><?php endif; ?></div><div class="project-body"><p class="project-cat"><?= e($item['category_name'] ?? 'Project') ?></p><h2 class="project-title"><a href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($item['slug'])) ?>"><?= e($item['title']) ?></a></h2><?php if (!empty($item['short_description'])): ?><div class="project-desc"><?= limit_rich_text_words((string) $item['short_description'], 20) ?></div><?php endif; ?><div class="project-links"><?php if ($item['external_url']): ?><a href="<?= e($item['external_url']) ?>" target="_blank" rel="noopener noreferrer">Visit live site</a><?php endif; ?><?php if ($item['github_url']): ?><a href="<?= e($item['github_url']) ?>" target="_blank" rel="noopener noreferrer">GitHub</a><?php endif; ?></div><a class="project-open" href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($item['slug'])) ?>">Full project details <span aria-hidden="true">&#8599;</span></a></div></article><?php endforeach; ?>
   </div><?php if (!$items): ?><p class="empty-state">Projects will appear here as they are published from the dashboard.</p><?php endif; ?></section>
 <?php elseif ($view === 'services'): ?>
-  <?php $items = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY sort_order ASC')->fetchAll(); ?>
-  <section class="section"><div class="services-grid"><?php foreach ($items as $item): ?><article class="service-item"><p class="eyebrow"><?= e($item['price_label'] ?? '') ?></p><h2><?= e($item['title']) ?></h2><p><?= e($item['description'] ?? '') ?></p></article><?php endforeach; ?></div><?php if (!$items): ?><p class="empty-state">Services will appear here as they are added from the dashboard.</p><?php endif; ?></section>
+  <?php
+  $items = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC')->fetchAll();
+  $serviceProjectCounts = service_project_counts($pdo);
+  ?>
+  <section class="section">
+    <div class="svc-grid">
+      <?php foreach ($items as $i => $item): ?>
+        <?php render_service_card($item, $serviceProjectCounts[(int) $item['id']] ?? 0, $i); ?>
+      <?php endforeach; ?>
+    </div>
+    <?php if (!$items): ?><p class="empty-state">Services will appear here as they are added from the dashboard.</p><?php endif; ?>
+  </section>
 <?php elseif ($view === 'experience'): ?>
   <?php $items = $pdo->query('SELECT * FROM experience WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC')->fetchAll(); ?>
   <section class="section"><div class="timeline"><?php foreach ($items as $item): ?><article class="timeline-item"><p class="timeline-role"><?= e($item['role_title']) ?></p><p class="timeline-org"><?= e($item['organization']) ?><?= $item['location'] ? ' · ' . e($item['location']) : '' ?></p><p class="timeline-date"><?= e($item['start_date']) ?> — <?= e($item['end_date']) ?></p><p class="timeline-desc"><?= e($item['description'] ?? '') ?></p></article><?php endforeach; ?></div><?php if (!$items): ?><p class="empty-state">Experience will appear here as it is added from the dashboard.</p><?php endif; ?></section>

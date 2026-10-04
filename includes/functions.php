@@ -627,3 +627,7 @@ function get_setting(PDO $pdo, string $key, string $default = ''): string
     }
     return $cache[$key] ?? $default;
 }
+
+// Services feature helpers (schema migration, icons, card renderer)
+require_once __DIR__ . '/services-lib.php';
+

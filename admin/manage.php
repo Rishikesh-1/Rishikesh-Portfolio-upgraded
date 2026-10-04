@@ -41,14 +41,22 @@ $definitions = [
         'primary' => 'id',
         'order' => 'sort_order ASC, id DESC',
         'fields' => [
-            'title' => ['label' => 'Title', 'required' => true, 'maxlength' => 150],
-            'description' => ['label' => 'Description', 'type' => 'textarea'],
-            'price_label' => ['label' => 'Price label', 'maxlength' => 80],
-            'icon_class' => ['label' => 'Icon class', 'maxlength' => 80],
-            'sort_order' => ['label' => 'Display order', 'type' => 'number', 'default' => 0],
+            'title' => ['label' => 'Service Title', 'required' => true, 'maxlength' => 150],
+            'slug' => ['label' => 'URL Slug (e.g. social-media-management, leave empty to auto-generate)', 'maxlength' => 180],
+            'tagline' => ['label' => 'Tagline / Value Proposition', 'maxlength' => 255],
+            'description' => ['label' => 'Short Summary (Shown on homepage cards)', 'type' => 'textarea'],
+            'cover_image' => ['label' => 'Cover Image / Showcase Graphic', 'type' => 'image'],
+            'icon_class' => ['label' => 'Service Category Icon', 'type' => 'select', 'options' => array_keys(service_icon_options())],
+            'price_label' => ['label' => 'Starting Price (e.g. NPR 10,000 / mo, From $499)', 'maxlength' => 80],
+            'turnaround' => ['label' => 'Delivery Timeline (e.g. 2–3 weeks, Monthly retainer)', 'maxlength' => 80],
+            'deliverables' => ['label' => 'Key Deliverables (One per line with "-" or "•")', 'type' => 'textarea'],
+            'tools' => ['label' => 'Tools & Platforms (Comma-separated: Premiere Pro, Canva, Meta Suite)', 'maxlength' => 255],
+            'overview' => ['label' => 'In-Depth Overview & Scope (Shown on service detail page)', 'type' => 'textarea'],
+            'is_featured' => ['label' => 'Featured service (Highlighted card with badge)', 'type' => 'checkbox', 'default' => 0],
             'is_visible' => ['label' => 'Visible on live site', 'type' => 'checkbox', 'default' => 1],
+            'sort_order' => ['label' => 'Display order', 'type' => 'number', 'default' => 0],
         ],
-        'columns' => ['title', 'price_label', 'is_visible'],
+        'columns' => ['cover_image', 'title', 'price_label', 'is_featured', 'is_visible'],
     ],
     'social' => [
         'title' => 'Social links',
@@ -209,20 +217,35 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
         }
     }
 
-    $newImage = null;
+    if (!$error && $section === 'services') {
+        $rawSlug = trim($_POST['slug'] ?? '');
+        if ($rawSlug === '' && !empty($_POST['title'])) {
+            $rawSlug = make_slug($_POST['title']);
+        } elseif ($rawSlug !== '') {
+            $rawSlug = make_slug($rawSlug);
+        }
+        if ($rawSlug !== '') {
+            $slugCheck = $pdo->prepare("SELECT id FROM services WHERE slug = :s AND id != :id LIMIT 1");
+            $slugCheck->execute([':s' => $rawSlug, ':id' => $id]);
+            if ($slugCheck->fetch()) {
+                $rawSlug .= '-' . time();
+            }
+            $_POST['slug'] = $rawSlug;
+        }
+    }
+
+    $newImages = [];
     if (!$error) {
         try {
             foreach ($fields as $fieldName => $field) {
                 if (($field['type'] ?? '') === 'image') {
                     $uploaded = handle_image_upload($_FILES[$fieldName] ?? [], $field['label']);
                     if ($uploaded) {
-                        $newImage = $uploaded;
-                        break;
+                        $newImages[$fieldName] = $uploaded;
                     } elseif (!empty($_POST[$fieldName . '_existing'])) {
                         $chosen = basename(trim($_POST[$fieldName . '_existing']));
                         if (is_file(UPLOAD_DIR . $chosen)) {
-                            $newImage = $chosen;
-                            break;
+                            $newImages[$fieldName] = $chosen;
                         }
                     }
                 }
@@ -231,7 +254,7 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
             $values = [];
             foreach ($fields as $name => $field) {
                 if (($field['type'] ?? '') === 'image') {
-                    $values[$name] = $newImage ?: ($record[$name] ?? null);
+                    $values[$name] = $newImages[$name] ?? ($record[$name] ?? null);
                 } elseif (($field['type'] ?? '') === 'number') {
                     $values[$name] = isset($_POST[$name]) && $_POST[$name] !== '' ? (int)$_POST[$name] : ($field['default'] ?? 0);
                 } else {
@@ -245,18 +268,37 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
                 $stmt = $pdo->prepare("INSERT INTO {$table} ({$columns}) VALUES ({$placeholders})");
                 foreach ($values as $name => $value) $stmt->bindValue(':' . $name, $value);
                 $stmt->execute();
+                $savedId = (int)$pdo->lastInsertId();
             } else {
                 $assignments = implode(', ', array_map(static fn($name) => "{$name} = :{$name}", array_keys($values)));
                 $stmt = $pdo->prepare("UPDATE {$table} SET {$assignments} WHERE {$primary} = :record_id");
                 foreach ($values as $name => $value) $stmt->bindValue(':' . $name, $value);
                 $stmt->bindValue(':record_id', $id, PDO::PARAM_INT);
                 $stmt->execute();
+                $savedId = $id;
+            }
+
+            // Sync related projects for services
+            if ($section === 'services' && $savedId) {
+                $selectedProjects = isset($_POST['linked_projects']) && is_array($_POST['linked_projects'])
+                    ? array_map('intval', $_POST['linked_projects'])
+                    : [];
+                $delStmt = $pdo->prepare("DELETE FROM service_projects WHERE service_id = :sid");
+                $delStmt->execute([':sid' => $savedId]);
+                if (!empty($selectedProjects)) {
+                    $insProj = $pdo->prepare("INSERT IGNORE INTO service_projects (service_id, project_id) VALUES (:sid, :pid)");
+                    foreach ($selectedProjects as $pid) {
+                        $insProj->execute([':sid' => $savedId, ':pid' => $pid]);
+                    }
+                }
             }
 
             header('Location: manage.php?section=' . urlencode($section) . '&saved=1');
             exit;
         } catch (RuntimeException $exception) {
-            if ($newImage) delete_uploaded_file($newImage);
+            foreach ($newImages as $img) {
+                if ($img) delete_uploaded_file($img);
+            }
             $error = $exception->getMessage();
         }
     }
@@ -319,6 +361,39 @@ if ($action === 'add' || $action === 'edit') {
           <div class="form-group"><label><?= e($label) ?></label><input type="<?= e($type) ?>" name="<?= e($name) ?>" value="<?= e((string)$value) ?>"<?= $maxlength . $min . $max ?><?= !empty($field['required']) ? ' required' : '' ?>></div>
         <?php endif; ?>
       <?php endforeach; ?>
+
+      <?php if ($section === 'services'): 
+          $allProjects = $pdo->query("SELECT id, title, category FROM projects ORDER BY sort_order ASC, id DESC")->fetchAll();
+          $linkedProjectIds = [];
+          if ($action === 'edit' && $id) {
+              $pStmt = $pdo->prepare("SELECT project_id FROM service_projects WHERE service_id = :sid");
+              $pStmt->execute([':sid' => $id]);
+              $linkedProjectIds = $pStmt->fetchAll(PDO::FETCH_COLUMN);
+          }
+      ?>
+        <div class="form-group" style="margin-top:28px;padding-top:20px;border-top:1px solid var(--hairline);">
+          <label style="font-size:1.05rem;font-weight:700;margin-bottom:6px;display:block;">Link Related Projects / Case Studies</label>
+          <p style="color:var(--text-muted);font-size:0.86rem;margin:0 0 14px;line-height:1.5;">Check the projects you've completed under this service. They will be highlighted in the "Featured Work & Proven Results" section on the service page.</p>
+          <?php if (empty($allProjects)): ?>
+            <p style="color:var(--text-muted);font-style:italic;">No projects found yet. You can add projects in the <a href="projects.php" style="color:var(--accent);">Projects</a> section.</p>
+          <?php else: ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:12px;">
+              <?php foreach ($allProjects as $proj): 
+                  $isLinked = in_array((int)$proj['id'], array_map('intval', $linkedProjectIds), true);
+              ?>
+                <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid <?= $isLinked ? 'var(--accent)' : 'var(--hairline)' ?>;border-radius:10px;background:rgba(255,255,255,0.03);cursor:pointer;transition:border-color .2s ease;">
+                  <input type="checkbox" name="linked_projects[]" value="<?= (int)$proj['id'] ?>" <?= $isLinked ? 'checked' : '' ?> style="width:auto;margin:0;">
+                  <div style="min-width:0;">
+                    <div style="font-weight:600;font-size:0.92rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= e($proj['title']) ?></div>
+                    <?php if (!empty($proj['category'])): ?><div style="font-size:0.75rem;color:var(--accent);"><?= e($proj['category']) ?></div><?php endif; ?>
+                  </div>
+                </label>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
+        </div>
+      <?php endif; ?>
+
       <button type="submit" class="btn btn-primary"><?= $action === 'add' ? 'Save' : 'Update' ?></button>
       <a href="manage.php?section=<?= e($section) ?>" class="btn btn-ghost">Cancel</a>
     </form>
@@ -356,7 +431,11 @@ require __DIR__ . '/includes/admin-header.php';
             <?php else: ?><?= e((string)$row[$column]) ?><?php endif; ?>
           </td>
         <?php endforeach; ?>
-        <td><a href="manage.php?section=<?= e($section) ?>&action=edit&id=<?= (int)$row[$primary] ?>" style="color:var(--accent);margin-right:12px;">Edit</a>
+        <td>
+          <?php if ($section === 'services' && !empty($row['slug'])): ?>
+            <a href="../service.php?slug=<?= urlencode($row['slug']) ?>" target="_blank" style="color:var(--accent);margin-right:12px;font-weight:600;">View ↗</a>
+          <?php endif; ?>
+          <a href="manage.php?section=<?= e($section) ?>&action=edit&id=<?= (int)$row[$primary] ?>" style="color:var(--accent);margin-right:12px;">Edit</a>
           <form method="POST" action="manage.php?section=<?= e($section) ?>&action=delete&id=<?= (int)$row[$primary] ?>" style="display:inline;" onsubmit="return confirm('Delete this item? This cannot be undone.');"><?= csrf_field() ?><button type="submit" style="background:none;border:0;padding:0;color:#ff7442;cursor:pointer;font:inherit;">Delete</button></form>
         </td>
       </tr>
