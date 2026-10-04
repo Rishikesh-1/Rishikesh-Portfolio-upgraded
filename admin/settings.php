@@ -196,8 +196,8 @@ require __DIR__ . '/includes/admin-header.php';
   </div>
   <div class="form-row">
     <div class="form-group">
-      <label>Slider headline</label>
-      <input type="text" name="clients_heading" value="<?= e($settings['clients_heading'] ?? 'Trusted by companies, brands & partners') ?>" maxlength="150">
+      <label>Slider headline (displayed directly above the logo slider)</label>
+      <input type="text" name="clients_heading" value="<?= e($settings['clients_heading'] ?? 'Companies & Brands I\'ve Worked With') ?>" maxlength="150" placeholder="e.g. Companies & Brands I've Worked With">
     </div>
     <div class="form-group">
       <label>Slider subtitle (optional)</label>

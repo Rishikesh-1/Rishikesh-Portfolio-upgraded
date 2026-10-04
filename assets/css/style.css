@@ -861,42 +861,48 @@ body[data-theme='light'] .back-to-top:hover {
 
 /* ---------- Clients / Brands marquee ticker ---------- */
 .clients-slider-section {
-  padding: 42px 0 54px;
+  padding: 24px 0 28px;
   position: relative;
   overflow: hidden;
   border-top: 1px solid var(--hairline);
   border-bottom: 1px solid var(--hairline);
-  background: rgba(13, 20, 38, 0.35);
+  background: rgba(13, 20, 38, 0.3);
 }
 body[data-theme='light'] .clients-slider-section {
-  background: rgba(240, 246, 255, 0.65);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(25, 58, 105, 0.1);
 }
 .clients-slider-header {
   text-align: center;
-  max-width: 720px;
-  margin: 0 auto 28px;
-  padding: 0 var(--space-3);
+  max-width: 860px;
+  margin: 0 auto 16px;
+  padding: 0 20px;
 }
 .clients-slider-title {
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: clamp(1.2rem, 3.2vw, 1.55rem);
-  font-weight: 600;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(0.95rem, 2.2vw, 1.12rem);
+  font-weight: 700;
   color: var(--text);
   letter-spacing: -0.01em;
+  line-height: 1.4;
+  margin: 0;
+}
+body[data-theme='light'] .clients-slider-title {
+  color: #111827;
 }
 .clients-slider-subtitle {
   color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-top: 6px;
+  font-size: 0.85rem;
+  margin-top: 4px;
 }
 .clients-marquee-wrapper {
   position: relative;
   width: 100%;
   overflow: hidden;
   display: flex;
-  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
-  padding: 12px 0;
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  padding: 6px 0;
 }
 .clients-marquee-track {
   display: flex;
@@ -907,9 +913,9 @@ body[data-theme='light'] .clients-slider-section {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  gap: clamp(36px, 6vw, 76px);
-  padding-right: clamp(36px, 6vw, 76px);
-  animation: marquee-scroll 32s linear infinite;
+  gap: clamp(38px, 6vw, 76px);
+  padding-right: clamp(38px, 6vw, 76px);
+  animation: marquee-scroll 28s linear infinite;
   flex-shrink: 0;
   min-width: 100%;
 }
@@ -928,7 +934,7 @@ body[data-theme='light'] .clients-slider-section {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 58px;
+  height: 48px;
   flex-shrink: 0;
 }
 .clients-marquee-item a {
@@ -936,25 +942,25 @@ body[data-theme='light'] .clients-slider-section {
   align-items: center;
   justify-content: center;
   height: 100%;
+  transition: transform 0.2s ease;
+}
+.clients-marquee-item a:hover {
+  transform: scale(1.06);
 }
 .clients-marquee-item img {
-  max-height: 44px;
-  max-width: 150px;
+  max-height: 42px;
+  max-width: 160px;
   width: auto;
   height: auto;
   object-fit: contain;
-  filter: grayscale(1) brightness(0.85);
-  opacity: 0.72;
-  transition: filter 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+  /* Full vibrant original brand colors in both dark and light modes — no fading */
+  filter: none !important;
+  opacity: 1 !important;
+  display: block;
+  transition: transform 0.2s ease;
 }
-body[data-theme='light'] .clients-marquee-item img {
-  filter: grayscale(1) brightness(0.25);
-  opacity: 0.75;
-}
-.clients-marquee-item:hover img {
-  filter: grayscale(0) brightness(1) drop-shadow(0 4px 16px rgba(92,225,255,0.25));
-  opacity: 1;
-  transform: scale(1.08);
+.clients-marquee-item img:hover {
+  transform: scale(1.06);
 }
 @media (prefers-reduced-motion: reduce) {
   .clients-marquee-group {
