@@ -91,45 +91,49 @@ require __DIR__ . '/includes/header.php';
 
   <!-- HERO -->
   <header class="svc-hero<?= empty($service['cover_image']) ? ' no-cover' : '' ?>">
-    <div class="svc-hero-copy">
-      <span class="svc-hero-icon"><?= service_icon_svg($service['icon_class'] ?? '') ?></span>
-      <p class="eyebrow">Service<?= !empty($service['is_featured']) ? ' · Most requested' : '' ?></p>
-      <h1 class="display svc-hero-title"><?= e($service['title']) ?></h1>
-      <?php if (!empty($service['tagline'])): ?><p class="svc-hero-tagline"><?= e($service['tagline']) ?></p><?php endif; ?>
-      <?php if (!empty($service['description'])): ?><p class="svc-hero-lede"><?= e($service['description']) ?></p><?php endif; ?>
+    <div class="svc-hero-inner">
+      <div class="svc-hero-copy">
+        <span class="svc-hero-icon"><?= service_icon_svg($service['icon_class'] ?? '') ?></span>
+        <p class="eyebrow">Service<?= !empty($service['is_featured']) ? ' · Most requested' : '' ?></p>
+        <h1 class="display svc-hero-title"><?= e($service['title']) ?></h1>
+        <?php if (!empty($service['tagline'])): ?><p class="svc-hero-tagline"><?= e($service['tagline']) ?></p><?php endif; ?>
+        <?php if (!empty($service['description'])): ?><p class="svc-hero-lede"><?= e($service['description']) ?></p><?php endif; ?>
 
-      <ul class="svc-hero-facts">
-        <?php if (!empty($service['price_label'])): ?><li><span>Starting at</span><strong><?= e($service['price_label']) ?></strong></li><?php endif; ?>
-        <?php if (!empty($service['turnaround'])): ?><li><span>Typical timeline</span><strong><?= e($service['turnaround']) ?></strong></li><?php endif; ?>
-        <?php if (!$relatedIsFallback && $relatedProjects): ?><li><span>Delivered</span><strong><?= count($relatedProjects) ?> project<?= count($relatedProjects) === 1 ? '' : 's' ?></strong></li><?php endif; ?>
-        <?php if ($avgRating > 0): ?><li><span>Client rating</span><strong><span class="svc-star" aria-hidden="true">&#9733;</span> <?= e(number_format($avgRating, 1)) ?>/5</strong></li><?php endif; ?>
-      </ul>
+        <ul class="svc-hero-facts">
+          <?php if (!empty($service['price_label'])): ?><li><span>Starting at</span><strong><?= e($service['price_label']) ?></strong></li><?php endif; ?>
+          <?php if (!empty($service['turnaround'])): ?><li><span>Typical timeline</span><strong><?= e($service['turnaround']) ?></strong></li><?php endif; ?>
+          <?php if (!$relatedIsFallback && $relatedProjects): ?><li><span>Delivered</span><strong><?= count($relatedProjects) ?> project<?= count($relatedProjects) === 1 ? '' : 's' ?></strong></li><?php endif; ?>
+          <?php if ($avgRating > 0): ?><li><span>Client rating</span><strong><span class="svc-star" aria-hidden="true">&#9733;</span> <?= e(number_format($avgRating, 1)) ?>/5</strong></li><?php endif; ?>
+        </ul>
 
-      <div class="svc-hero-actions">
-        <a href="#book" class="btn btn-primary svc-btn-lg">Book this service <span aria-hidden="true">&rarr;</span></a>
-        <a href="#work" class="btn btn-ghost svc-btn-lg">See related work</a>
+        <div class="svc-hero-actions">
+          <a href="#book" class="btn btn-primary svc-btn-lg">Book this service <span aria-hidden="true">&rarr;</span></a>
+          <a href="#work" class="btn btn-ghost svc-btn-lg">See related work</a>
+        </div>
+        <p class="svc-hero-assure"><span aria-hidden="true">&#10003;</span> Free discovery call &nbsp; <span aria-hidden="true">&#10003;</span> Reply within 24 hours &nbsp; <span aria-hidden="true">&#10003;</span> No obligation</p>
       </div>
-      <p class="svc-hero-assure"><span aria-hidden="true">&#10003;</span> Free discovery call &nbsp; <span aria-hidden="true">&#10003;</span> Reply within 24 hours &nbsp; <span aria-hidden="true">&#10003;</span> No obligation</p>
+      <?php if (!empty($service['cover_image'])): ?>
+        <figure class="svc-hero-media">
+          <img src="<?= e(UPLOAD_URL . $service['cover_image']) ?>" alt="<?= e($service['title']) ?>" loading="eager">
+        </figure>
+      <?php else: ?>
+        <div class="svc-hero-art" aria-hidden="true"><?= service_icon_svg($service['icon_class'] ?? '', 'svc-hero-art-icon') ?></div>
+      <?php endif; ?>
     </div>
-    <?php if (!empty($service['cover_image'])): ?>
-      <figure class="svc-hero-media">
-        <img src="<?= e(UPLOAD_URL . $service['cover_image']) ?>" alt="<?= e($service['title']) ?>" loading="eager">
-      </figure>
-    <?php else: ?>
-      <div class="svc-hero-art" aria-hidden="true"><?= service_icon_svg($service['icon_class'] ?? '', 'svc-hero-art-icon') ?></div>
-    <?php endif; ?>
   </header>
 
   <!-- SECTION NAV -->
-  <nav class="svc-subnav" aria-label="On this page">
-    <a href="#overview">Overview</a>
-    <?php if ($deliverables): ?><a href="#included">What's included</a><?php endif; ?>
-    <a href="#process">Process</a>
-    <?php if ($packages): ?><a href="#packages">Packages</a><?php endif; ?>
-    <?php if ($relatedProjects): ?><a href="#work">Work</a><?php endif; ?>
-    <a href="#faq">FAQ</a>
-    <a href="#book" class="svc-subnav-cta">Book now</a>
-  </nav>
+  <div class="svc-subnav-wrapper">
+    <nav class="svc-subnav" aria-label="On this page">
+      <a href="#overview">Overview</a>
+      <?php if ($deliverables): ?><a href="#included">What's included</a><?php endif; ?>
+      <a href="#process">Process</a>
+      <?php if ($packages): ?><a href="#packages">Packages</a><?php endif; ?>
+      <?php if ($relatedProjects): ?><a href="#work">Work</a><?php endif; ?>
+      <a href="#faq">FAQ</a>
+      <a href="#book" class="svc-subnav-cta">Book now</a>
+    </nav>
+  </div>
 
   <div class="svc-layout">
     <div class="svc-main">
