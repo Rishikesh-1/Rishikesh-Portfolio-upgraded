@@ -55,11 +55,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $val = trim($_POST[$key] ?? '');
             $upd->execute([':k' => $key, ':v' => $val, ':v2' => $val]);
         }
-        if ($newFavicon) {
+        if (!empty($_POST['remove_site_favicon'])) {
+          delete_uploaded_file($currentFavicon);
+          $upd->execute([':k' => 'site_favicon', ':v' => '', ':v2' => '']);
+        } elseif ($newFavicon) {
           $upd->execute([':k' => 'site_favicon', ':v' => $newFavicon, ':v2' => $newFavicon]);
           delete_uploaded_file($currentFavicon);
         }
-        if ($newLogo) {
+
+        if (!empty($_POST['remove_site_logo_image'])) {
+          delete_uploaded_file($currentLogo);
+          $upd->execute([':k' => 'site_logo_image', ':v' => '', ':v2' => '']);
+        } elseif ($newLogo) {
           $upd->execute([':k' => 'site_logo_image', ':v' => $newLogo, ':v2' => $newLogo]);
           delete_uploaded_file($currentLogo);
         }
@@ -111,13 +118,19 @@ require __DIR__ . '/includes/admin-header.php';
     </div>
     <div class="form-group">
       <label>Browser tab icon</label>
-      <?php if (!empty($settings['site_favicon'])): ?><p style="display:flex;align-items:center;gap:8px;font-size:0.85rem;margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_favicon']) ?>" alt="Current browser tab icon" style="width:32px;height:32px;object-fit:contain;"><span>Current icon</span></p><?php endif; ?>
+      <?php if (!empty($settings['site_favicon'])): ?>
+        <p style="display:flex;align-items:center;gap:8px;font-size:0.85rem;margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_favicon']) ?>" alt="Current browser tab icon" style="width:32px;height:32px;object-fit:contain;"><span>Current icon</span></p>
+        <label style="font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_site_favicon" value="1" style="width:auto;display:inline;"> Remove current icon</label>
+      <?php endif; ?>
       <input type="file" name="site_favicon" accept=".jpg,.jpeg,.png,.webp">
       <small>Upload a JPG, PNG, or WEBP image. A square PNG is recommended.</small>
     </div>
     <div class="form-group">
       <label>Logo image (optional)</label>
-      <?php if (!empty($settings['site_logo_image'])): ?><p style="margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_logo_image']) ?>" alt="Current navigation logo" style="width:120px;height:40px;object-fit:contain;"></p><?php endif; ?>
+      <?php if (!empty($settings['site_logo_image'])): ?>
+        <p style="margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_logo_image']) ?>" alt="Current navigation logo" style="width:120px;height:40px;object-fit:contain;"></p>
+        <label style="font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_site_logo_image" value="1" style="width:auto;display:inline;"> Remove current logo image (use brand text instead)</label>
+      <?php endif; ?>
       <input type="file" name="site_logo_image" accept=".jpg,.jpeg,.png,.webp">
       <small>Upload a transparent PNG or WEBP for best results.</small>
     </div>

@@ -42,7 +42,17 @@ require __DIR__ . '/includes/header.php';
       <span class="reveal" data-reveal><?= e($about['full_name']) ?></span>
     </h1>
     <p class="hero-role"><?= e($about['role_title']) ?></p>
-    <p class="hero-tagline"><span data-typing="Hello, I’m <?= e($about['full_name']) ?>. I build brands, campaigns, and digital experiences."></span><span class="typing-cursor" aria-hidden="true">|</span></p>
+    <?php
+    $customTagline = trim($about['tagline'] ?? '');
+    if ($customTagline !== '') {
+        $taglineDisplay = (preg_match('/^(hello|hi|hey|i am|i\'m|i’m)/i', $customTagline))
+            ? $customTagline
+            : 'Hello, I’m ' . $about['full_name'] . '. ' . $customTagline;
+    } else {
+        $taglineDisplay = 'Hello, I’m ' . $about['full_name'] . '. I build brands, campaigns, and digital experiences.';
+    }
+    ?>
+    <p class="hero-tagline"><span data-typing="<?= e($taglineDisplay) ?>"></span><span class="typing-cursor" aria-hidden="true">|</span></p>
     <p class="hero-skill-line">Currently focused on <span data-skill-rotate data-skills="<?= e(json_encode($heroFocusOptions, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP)) ?>"><?= e($heroFocusOptions[0]) ?></span></p>
     <div class="hero-actions">
       <a href="#work" class="btn btn-primary">See my work</a>

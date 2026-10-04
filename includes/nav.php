@@ -1,6 +1,16 @@
+<?php
+$navBrandText = get_setting($pdo, 'site_logo_text', 'Rishikesh Rana');
+$navBrandImage = get_setting($pdo, 'site_logo_image', '');
+?>
 <header class="site-nav">
   <div class="nav-inner">
-    <a href="<?= e(SITE_ROOT_URL) ?>/" class="nav-brand">Rishikesh Rana</a>
+    <a href="<?= e(SITE_ROOT_URL) ?>/" class="nav-brand">
+      <?php if (!empty($navBrandImage)): ?>
+        <img src="<?= e(UPLOAD_URL . $navBrandImage) ?>" alt="<?= e($navBrandText) ?>">
+      <?php else: ?>
+        <?= e($navBrandText) ?>
+      <?php endif; ?>
+    </a>
     <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
