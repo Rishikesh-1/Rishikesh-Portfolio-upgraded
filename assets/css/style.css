@@ -858,3 +858,109 @@ body[data-theme='light'] .back-to-top:hover {
   .admin-shell { grid-template-columns: 1fr; }
   .admin-sidebar { display: flex; overflow-x: auto; gap: 4px; }
 }
+
+/* ---------- Clients / Brands marquee ticker ---------- */
+.clients-slider-section {
+  padding: 42px 0 54px;
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: rgba(13, 20, 38, 0.35);
+}
+body[data-theme='light'] .clients-slider-section {
+  background: rgba(240, 246, 255, 0.65);
+}
+.clients-slider-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 28px;
+  padding: 0 var(--space-3);
+}
+.clients-slider-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.2rem, 3.2vw, 1.55rem);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.clients-slider-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+.clients-marquee-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  padding: 12px 0;
+}
+.clients-marquee-track {
+  display: flex;
+  width: max-content;
+  user-select: none;
+}
+.clients-marquee-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: clamp(36px, 6vw, 76px);
+  padding-right: clamp(36px, 6vw, 76px);
+  animation: marquee-scroll 32s linear infinite;
+  flex-shrink: 0;
+  min-width: 100%;
+}
+.clients-marquee-track:hover .clients-marquee-group {
+  animation-play-state: paused;
+}
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+.clients-marquee-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 58px;
+  flex-shrink: 0;
+}
+.clients-marquee-item a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+.clients-marquee-item img {
+  max-height: 44px;
+  max-width: 150px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: grayscale(1) brightness(0.85);
+  opacity: 0.72;
+  transition: filter 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+body[data-theme='light'] .clients-marquee-item img {
+  filter: grayscale(1) brightness(0.25);
+  opacity: 0.75;
+}
+.clients-marquee-item:hover img {
+  filter: grayscale(0) brightness(1) drop-shadow(0 4px 16px rgba(92,225,255,0.25));
+  opacity: 1;
+  transform: scale(1.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .clients-marquee-group {
+    animation: none;
+  }
+  .clients-marquee-wrapper {
+    overflow-x: auto;
+  }
+}

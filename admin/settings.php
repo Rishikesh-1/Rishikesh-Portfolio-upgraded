@@ -51,12 +51,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $stmt->execute([':n' => $fullName, ':r' => $roleTitle, ':t' => $tagline, ':b' => $bio, ':p' => $profileImage, ':rf' => $resumeFile]);
 
-        $settingsToSave = ['hero_focus_1', 'hero_focus_2', 'hero_focus_3', 'site_logo_text', 'resume_button_text', 'site_title', 'site_description', 'contact_email', 'contact_notification_email', 'contact_phone', 'location', 'google_analytics_id'];
+        $settingsToSave = ['hero_focus_1', 'hero_focus_2', 'hero_focus_3', 'site_logo_text', 'resume_button_text', 'site_title', 'site_description', 'contact_email', 'contact_notification_email', 'contact_phone', 'location', 'google_analytics_id', 'clients_heading', 'clients_subheading'];
         $upd = $pdo->prepare('INSERT INTO site_settings (setting_key, setting_value) VALUES (:k, :v) ON DUPLICATE KEY UPDATE setting_value = :v2');
         foreach ($settingsToSave as $key) {
             $val = trim($_POST[$key] ?? '');
             $upd->execute([':k' => $key, ':v' => $val, ':v2' => $val]);
         }
+        $showSlider = !empty($_POST['show_clients_slider']) ? '1' : '0';
+        $upd->execute([':k' => 'show_clients_slider', ':v' => $showSlider, ':v2' => $showSlider]);
         if (!empty($_POST['remove_site_favicon'])) {
           delete_uploaded_file($currentFavicon);
           $upd->execute([':k' => 'site_favicon', ':v' => '', ':v2' => '']);
@@ -183,6 +185,28 @@ require __DIR__ . '/includes/admin-header.php';
       <small>Download any loader SVG file and upload it here to replace the website's initial loading screen.</small>
     </div>
   </div>
+
+  <h3 style="margin:var(--space-4) 0 16px;">Clients &amp; Brands ticker</h3>
+  <div class="form-group">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input type="checkbox" name="show_clients_slider" value="1" <?= ($settings['show_clients_slider'] ?? '1') === '1' ? 'checked' : '' ?> style="width:auto;display:inline;">
+      <span>Enable client &amp; partner logo slider on website</span>
+    </label>
+    <small>Unchecking this will temporarily hide the logo slider across the entire site without deleting your uploaded logos.</small>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Slider headline</label>
+      <input type="text" name="clients_heading" value="<?= e($settings['clients_heading'] ?? 'Trusted by companies, brands & partners') ?>" maxlength="150">
+    </div>
+    <div class="form-group">
+      <label>Slider subtitle (optional)</label>
+      <input type="text" name="clients_subheading" value="<?= e($settings['clients_subheading'] ?? '') ?>" maxlength="200" placeholder="e.g. Selected collaborations, sponsor campaigns, and client work">
+    </div>
+  </div>
+  <p style="font-size:0.85rem;color:var(--text-muted);margin-top:-8px;margin-bottom:20px;">
+    To upload or manage client logos, go to <a href="manage.php?section=clients" style="color:var(--accent);">Clients &amp; Brands</a> in the sidebar.
+  </p>
 
   <h3 style="margin:var(--space-4) 0 16px;">Global SEO &amp; contact</h3>
   <div class="form-group"><label>Default site title</label><input type="text" name="site_title" value="<?= e($settings['site_title'] ?? '') ?>"></div>

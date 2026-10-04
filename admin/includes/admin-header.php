@@ -26,6 +26,7 @@ $active = $active ?? '';
     <a href="manage.php?section=social" class="<?= $active === 'social' ? 'active' : '' ?>">Social links</a>
     <a href="manage.php?section=social_posts" class="<?= $active === 'social_posts' ? 'active' : '' ?>">Social content</a>
     <a href="manage.php?section=testimonials" class="<?= $active === 'testimonials' ? 'active' : '' ?>">Testimonials</a>
+    <a href="manage.php?section=clients" class="<?= $active === 'clients' ? 'active' : '' ?>">Clients &amp; Brands</a>
     <a href="messages.php" class="<?= $active === 'messages' ? 'active' : '' ?>">Messages</a>
     <a href="settings.php" class="<?= $active === 'settings' ? 'active' : '' ?>">Site settings</a>
     <a href="logs.php" class="<?= $active === 'logs' ? 'active' : '' ?>" style="display:flex;align-items:center;justify-content:space-between;">

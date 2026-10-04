@@ -102,6 +102,20 @@ $definitions = [
         ],
         'columns' => ['client_name', 'client_role', 'rating', 'is_visible'],
     ],
+    'clients' => [
+        'title' => 'Clients & Brands',
+        'table' => 'clients',
+        'primary' => 'id',
+        'order' => 'sort_order ASC, id DESC',
+        'fields' => [
+            'name' => ['label' => 'Company / Brand name', 'required' => true, 'maxlength' => 150],
+            'logo_image' => ['label' => 'Logo image (PNG, SVG, WEBP, JPG)', 'type' => 'image', 'required' => true],
+            'website_url' => ['label' => 'Website URL (optional)', 'type' => 'url', 'maxlength' => 255],
+            'sort_order' => ['label' => 'Display order (1 = first, 2 = second...)', 'type' => 'number', 'default' => 0],
+            'is_visible' => ['label' => 'Visible on live site', 'type' => 'checkbox', 'default' => 1],
+        ],
+        'columns' => ['logo_image', 'name', 'website_url', 'sort_order', 'is_visible'],
+    ],
 ];
 
 if (!isset($definitions[$section])) {
@@ -263,8 +277,8 @@ if ($action === 'add' || $action === 'edit') {
                     <div class="form-group"><label><?= e($label) ?></label><select name="<?= e($name) ?>"<?= !empty($field['required']) ? ' required' : '' ?>><?php foreach ($field['options'] as $option): ?><option value="<?= e($option) ?>" <?= (string)$value === (string)$option ? 'selected' : '' ?>><?= e($option) ?></option><?php endforeach; ?></select></div>
         <?php elseif ($type === 'image'): ?>
           <div class="form-group"><label><?= e($label) ?></label>
-            <?php if ($value): ?><img src="<?= e(UPLOAD_URL . $value) ?>" alt="" style="width:100px;border-radius:4px;margin-bottom:8px;display:block;"><?php endif; ?>
-            <input type="file" name="<?= e($name) ?>" accept=".jpg,.jpeg,.png,.webp">
+            <?php if ($value): ?><img src="<?= e(UPLOAD_URL . $value) ?>" alt="" style="max-height:80px;max-width:160px;object-fit:contain;border-radius:4px;margin-bottom:8px;display:block;background:rgba(255,255,255,0.05);padding:6px;"><?php endif; ?>
+            <input type="file" name="<?= e($name) ?>" accept=".jpg,.jpeg,.png,.webp,.svg">
           </div>
         <?php else: ?>
           <div class="form-group"><label><?= e($label) ?></label><input type="<?= e($type) ?>" name="<?= e($name) ?>" value="<?= e((string)$value) ?>"<?= $maxlength . $min . $max ?><?= !empty($field['required']) ? ' required' : '' ?>></div>
@@ -297,6 +311,12 @@ require __DIR__ . '/includes/admin-header.php';
         <?php foreach ($definition['columns'] as $column): ?>
           <td>
             <?php if (($fields[$column]['type'] ?? '') === 'checkbox'): ?><span class="badge <?= $row[$column] ? 'badge-on' : 'badge-off' ?>"><?= $row[$column] ? 'Yes' : 'No' ?></span>
+            <?php elseif (($fields[$column]['type'] ?? '') === 'image'): ?>
+              <?php if (!empty($row[$column])): ?>
+                <img src="<?= e(UPLOAD_URL . $row[$column]) ?>" alt="" style="max-height:36px;max-width:90px;object-fit:contain;vertical-align:middle;background:rgba(255,255,255,0.06);padding:3px;border-radius:4px;">
+              <?php else: ?>
+                <span style="color:var(--text-muted);">&mdash;</span>
+              <?php endif; ?>
             <?php elseif (($fields[$column]['type'] ?? '') === 'textarea'): ?><?= e(mb_strimwidth((string)$row[$column], 0, 100, '...')) ?>
             <?php else: ?><?= e((string)$row[$column]) ?><?php endif; ?>
           </td>

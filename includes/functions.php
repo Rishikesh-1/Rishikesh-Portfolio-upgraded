@@ -397,29 +397,53 @@ function handle_image_upload(array $file, string $fieldNameForError = 'image'): 
         throw new RuntimeException('File is too large. Max size is ' . (MAX_UPLOAD_BYTES / 1024 / 1024) . 'MB.');
     }
 
-    // Verify the real MIME type. Fileinfo is preferred, but some cPanel plans
-    // do not enable it; getimagesize() provides a safe image-only fallback.
-    if (class_exists('finfo')) {
-        $finfo = new finfo(FILEINFO_MIME_TYPE);
-        $mime = $finfo->file($file['tmp_name']);
-    } elseif (function_exists('mime_content_type')) {
-        $mime = mime_content_type($file['tmp_name']);
-    } else {
-        $imageInfo = @getimagesize($file['tmp_name']);
-        $mime = $imageInfo['mime'] ?? '';
-    }
-    if (!in_array($mime, ALLOWED_IMAGE_TYPES, true)) {
-        throw new RuntimeException('Invalid file type. Only JPG, PNG, and WEBP are allowed.');
-    }
-
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, ALLOWED_IMAGE_EXTS, true)) {
         throw new RuntimeException('Invalid file extension.');
     }
 
-    // Extra safety: verify it decodes as a real image (blocks polyglot files).
-    if (@getimagesize($file['tmp_name']) === false) {
-        throw new RuntimeException('File is not a valid image.');
+    if ($ext === 'svg') {
+        $content = file_get_contents($file['tmp_name']);
+        if ($content === false || stripos($content, '<svg') === false) {
+            throw new RuntimeException('Uploaded file is not a valid SVG file.');
+        }
+        $disallowed = [
+            '<\s*script',
+            'javascript\s*:',
+            'data\s*:\s*text\/html',
+            'onload\s*=',
+            'onerror\s*=',
+            'onclick\s*=',
+            'onmouseover\s*=',
+            '<\s*foreignobject',
+            '<\s*iframe',
+            '<\s*embed',
+            '<!ENTITY'
+        ];
+        foreach ($disallowed as $pattern) {
+            if (preg_match('/' . $pattern . '/i', $content)) {
+                throw new RuntimeException('Security check failed: SVG contains unauthorized scripts or tags.');
+            }
+        }
+    } else {
+        // Verify MIME type for raster images
+        if (class_exists('finfo')) {
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($file['tmp_name']);
+        } elseif (function_exists('mime_content_type')) {
+            $mime = mime_content_type($file['tmp_name']);
+        } else {
+            $imageInfo = @getimagesize($file['tmp_name']);
+            $mime = $imageInfo['mime'] ?? '';
+        }
+        if (!in_array($mime, ALLOWED_IMAGE_TYPES, true)) {
+            throw new RuntimeException('Invalid file type. Only JPG, PNG, WEBP, and SVG are allowed.');
+        }
+
+        // Extra safety: verify it decodes as a real image (blocks polyglot files).
+        if (@getimagesize($file['tmp_name']) === false) {
+            throw new RuntimeException('File is not a valid image.');
+        }
     }
 
     if (!is_dir(UPLOAD_DIR)) {
