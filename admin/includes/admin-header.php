@@ -21,6 +21,7 @@ $active = $active ?? '';
     <a href="taxonomy.php?type=categories" class="<?= $active === 'taxonomy-categories' ? 'active' : '' ?>">Project categories</a>
     <a href="taxonomy.php?type=tags" class="<?= $active === 'taxonomy-tags' ? 'active' : '' ?>">Project tags</a>
     <a href="blog.php" class="<?= $active === 'blog' ? 'active' : '' ?>">Blog</a>
+    <a href="media.php" class="<?= $active === 'media' ? 'active' : '' ?>">Media library</a>
     <a href="manage.php?section=experience" class="<?= $active === 'experience' ? 'active' : '' ?>">Experience</a>
     <a href="manage.php?section=skills" class="<?= $active === 'skills' ? 'active' : '' ?>">Skills</a>
     <a href="manage.php?section=services" class="<?= $active === 'services' ? 'active' : '' ?>">Services</a>

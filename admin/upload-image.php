@@ -41,7 +41,6 @@ try {
         'filename' => $filename,
         'url' => $relativeUrl,
         'full_url' => $fullUrl,
-        'admin_preview_url' => '../' . $relativeUrl,
     ]);
 } catch (RuntimeException $e) {
     http_response_code(400);
