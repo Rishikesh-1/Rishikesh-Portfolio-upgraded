@@ -69,8 +69,6 @@ require __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<?php require __DIR__ . '/includes/clients-slider.php'; ?>
-
 <?php
 $bioText = trim((string) ($about['bio_text'] ?? ''));
 $bioWords = preg_split('/\s+/', $bioText);
@@ -96,6 +94,8 @@ if (!empty($bioWords) && count($bioWords) > 150) {
   </a>
 </section>
 <?php endif; ?>
+
+<?php require __DIR__ . '/includes/clients-slider.php'; ?>
 
 <!-- WORK -->
 <?php if ($projects): ?>
