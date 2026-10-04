@@ -14,7 +14,7 @@ $projects = $pdo->query(
     LIMIT 3'
 )->fetchAll();
 
-$services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC')->fetchAll();
+$services = $pdo->query('SELECT * FROM services WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC LIMIT 6')->fetchAll();
 $serviceProjectCounts = service_project_counts($pdo);
 $saleProducts = $pdo->query('SELECT * FROM products WHERE is_visible = 1 ORDER BY is_featured DESC, sort_order ASC, id DESC LIMIT 6')->fetchAll();
 $contactPhone = get_setting($pdo, 'contact_phone', '');
