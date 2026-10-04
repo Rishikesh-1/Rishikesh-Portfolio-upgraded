@@ -155,22 +155,34 @@ require __DIR__ . '/includes/admin-header.php';
     </p>
   </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <a href="logs.php" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;">Refresh</a>
+    <a href="logs.php" class="btn" style="background:var(--surface);color:var(--text);border:1px solid var(--hairline);padding:8px 14px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px;">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <span>Refresh</span>
+    </a>
 
     <?php if ($logSize > 0): ?>
-      <a href="logs.php?action=download" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;">Download log</a>
+      <a href="logs.php?action=download" class="btn" style="background:var(--surface);color:var(--text);border:1px solid var(--hairline);padding:8px 14px;font-size:0.85rem;display:inline-flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Download log</span>
+      </a>
       
       <form method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to clear all error logs?');">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="clear">
-        <button type="submit" class="btn btn-primary" style="background:#dc2626;border-color:#dc2626;padding:8px 14px;font-size:0.85rem;">Clear logs</button>
+        <button type="submit" class="btn" style="background:#dc2626;color:#ffffff;border:1px solid #dc2626;padding:8px 14px;font-size:0.85rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>Clear logs</span>
+        </button>
       </form>
     <?php endif; ?>
 
     <form method="POST" style="display:inline;">
       <?= csrf_field() ?>
       <input type="hidden" name="action" value="test">
-      <button type="submit" class="btn btn-ghost" style="padding:8px 14px;font-size:0.85rem;" title="Simulates a test warning to ensure logging works">Test logger</button>
+      <button type="submit" class="btn" style="background:var(--accent);color:var(--ink);border:1px solid var(--accent);padding:8px 16px;font-size:0.85rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;box-shadow:0 0 16px rgba(92,225,255,0.25);" title="Simulates a test warning to ensure error logging is working">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Test error</span>
+      </button>
     </form>
   </div>
 </div>
