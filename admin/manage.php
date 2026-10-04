@@ -109,7 +109,7 @@ $definitions = [
         'order' => 'sort_order ASC, id DESC',
         'fields' => [
             'name' => ['label' => 'Company / Brand name', 'required' => true, 'maxlength' => 150],
-            'logo_image' => ['label' => 'Logo image (PNG, SVG, WEBP, JPG)', 'type' => 'image', 'required' => true],
+            'logo_image' => ['label' => 'Logo image (PNG, SVG, WEBP, JPEG, JPG)', 'type' => 'image', 'required' => true],
             'website_url' => ['label' => 'Website URL (optional)', 'type' => 'url', 'maxlength' => 255],
             'sort_order' => ['label' => 'Display order (1 = first, 2 = second...)', 'type' => 'number', 'default' => 0],
             'is_visible' => ['label' => 'Visible on live site', 'type' => 'checkbox', 'default' => 1],
@@ -171,9 +171,20 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
     }
 
     foreach ($fields as $name => $field) {
-        if (!empty($field['required']) && ($_POST[$name] ?? '') === '') {
-            $error = $field['label'] . ' is required.';
-            break;
+        if (!empty($field['required'])) {
+            if (($field['type'] ?? '') === 'image') {
+                $hasUploadedFile = !empty($_FILES[$name]['name']) && ($_FILES[$name]['error'] === UPLOAD_ERR_OK);
+                $hasExistingFile = !empty($record[$name]);
+                if (!$hasUploadedFile && !$hasExistingFile) {
+                    $error = $field['label'] . ' is required.';
+                    break;
+                }
+            } else {
+                if (($_POST[$name] ?? '') === '') {
+                    $error = $field['label'] . ' is required.';
+                    break;
+                }
+            }
         }
     }
     if (!$error && isset($_POST['proficiency']) && ((int)$_POST['proficiency'] < 0 || (int)$_POST['proficiency'] > 100)) {
@@ -279,6 +290,7 @@ if ($action === 'add' || $action === 'edit') {
           <div class="form-group"><label><?= e($label) ?></label>
             <?php if ($value): ?><img src="<?= e(UPLOAD_URL . $value) ?>" alt="" style="max-height:80px;max-width:160px;object-fit:contain;border-radius:4px;margin-bottom:8px;display:block;background:rgba(255,255,255,0.05);padding:6px;"><?php endif; ?>
             <input type="file" name="<?= e($name) ?>" accept=".jpg,.jpeg,.png,.webp,.svg">
+            <small style="color:var(--text-muted);display:block;margin-top:4px;">Supported formats: JPEG (.jpeg, .jpg), PNG (.png), SVG (.svg), and WebP (.webp).</small>
           </div>
         <?php else: ?>
           <div class="form-group"><label><?= e($label) ?></label><input type="<?= e($type) ?>" name="<?= e($name) ?>" value="<?= e((string)$value) ?>"<?= $maxlength . $min . $max ?><?= !empty($field['required']) ? ' required' : '' ?>></div>
