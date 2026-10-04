@@ -1690,18 +1690,85 @@ body[data-theme='light'] .clients-slider-title {
 }
 
 .svc-card.is-featured {
-  border-color: rgba(92, 225, 255, 0.4);
-  background: linear-gradient(180deg, rgba(23, 78, 119, 0.25) 0%, rgba(15, 23, 42, 0.75) 100%);
+  border-color: rgba(92, 225, 255, 0.45);
+  background: linear-gradient(180deg, rgba(23, 78, 119, 0.28) 0%, rgba(15, 23, 42, 0.8) 100%);
+}
+
+.svc-card-media {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: rgba(8, 14, 28, 0.85);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.svc-card-media img,
+.svc-card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+
+.svc-card:hover .svc-card-media img,
+.svc-card:hover .svc-card-cover {
+  transform: scale(1.06);
+}
+
+.svc-card-art {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, rgba(92, 225, 255, 0.14) 0%, rgba(8, 14, 28, 0.95) 75%);
+}
+
+.svc-card-art-icon {
+  width: 60px;
+  height: 60px;
+  color: var(--accent);
+  transition: transform 0.4s ease;
+}
+
+.svc-card:hover .svc-card-art-icon {
+  transform: scale(1.1);
 }
 
 .svc-card-badge {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 3;
-  padding: 5px 12px;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(7, 11, 22, 0.85);
+  border: 1px solid rgba(92, 225, 255, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.svc-card-badge svg {
+  width: 18px;
+  height: 18px;
+}
+
+.svc-card-flag {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1710,65 +1777,11 @@ body[data-theme='light'] .clients-slider-title {
   box-shadow: 0 4px 12px rgba(92, 225, 255, 0.35);
 }
 
-.svc-card-media {
-  position: relative;
-  width: 100%;
-  height: 190px;
-  background: rgba(8, 14, 28, 0.8);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid var(--hairline);
-}
-
-.svc-card-cover {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.svc-card:hover .svc-card-cover {
-  transform: scale(1.06);
-}
-
-.svc-card-icon-pill {
-  position: absolute;
-  bottom: 14px;
-  left: 18px;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(7, 11, 22, 0.85);
-  border: 1px solid rgba(92, 225, 255, 0.4);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-}
-
-.svc-card-icon-pill svg {
-  width: 24px;
-  height: 24px;
-}
-
 .svc-card-body {
-  padding: 22px 22px 18px;
+  padding: 24px 22px 20px;
   display: flex;
   flex-direction: column;
   flex: 1;
-}
-
-.svc-card-kicker {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
 }
 
 .svc-card-title {
@@ -1776,67 +1789,74 @@ body[data-theme='light'] .clients-slider-title {
   font-size: 1.32rem;
   line-height: 1.25;
   margin: 0 0 10px;
+}
+
+.svc-card-link {
   color: var(--text);
+  text-decoration: none;
   transition: color 0.2s ease;
 }
 
+.svc-card:hover .svc-card-link,
 .svc-card:hover .svc-card-title {
   color: var(--accent);
 }
 
-.svc-card-tagline {
+.svc-card-desc {
+  font-size: 0.88rem;
   color: var(--text-muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
-  margin-bottom: 16px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.svc-card-deliverables {
+.svc-card-meta {
   list-style: none;
-  padding: 0;
-  margin: 0 0 18px;
+  padding: 14px 0 0;
+  margin: auto 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  border-top: 1px solid var(--hairline);
+}
+
+.svc-card-meta li {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
+}
+
+.svc-card-meta li span {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.svc-card-meta li strong {
   font-size: 0.84rem;
-  color: var(--text-muted);
-}
-
-.svc-card-deliverables li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.svc-card-deliverables svg {
-  width: 14px;
-  height: 14px;
   color: var(--accent);
-  flex-shrink: 0;
-  margin-top: 2px;
 }
 
-.svc-card-foot {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--hairline);
-  display: flex;
+.svc-card-cta {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.svc-card-price {
-  font-size: 0.92rem;
-  font-weight: 700;
+.svc-card:hover .svc-card-cta {
   color: var(--accent);
-}
-
-.svc-card-price span {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  font-weight: 400;
-  display: block;
+  transform: translateX(4px);
 }
 
 .svc-card-cta {
