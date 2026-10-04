@@ -22,7 +22,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
-$exclude = '^(config/|admin/setup\.php$|scratch/|\.qodo/|DEPLOYMENT\.md$|schema\.sql$|deploy-sftp\.ps1$|\.gitignore$)'
+$exclude = '^(config/|admin/setup\.php$|scratch/|\.qodo/|DEPLOYMENT\.md$|schema\.sql$|deploy-sftp\.ps1$|\.gitignore$|PRIVATE_.*|private-.*|.*\.secret\..*)'
 
 if ($Since) {
     $files = git diff --name-only --diff-filter=AM $Since HEAD

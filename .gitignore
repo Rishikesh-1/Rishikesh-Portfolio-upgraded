@@ -6,3 +6,6 @@
 !/logs/.htaccess
 !/logs/.gitkeep
 /.qodo/
+/PRIVATE_*.md
+/private-*.md
+*.secret.*
