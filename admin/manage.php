@@ -3,6 +3,11 @@ require_once __DIR__ . '/../config/config.php';
 require_admin_login();
 
 $section = $_GET['section'] ?? '';
+if ($section === 'clients') {
+    ensure_clients_schema($pdo);
+} elseif ($section === 'services') {
+    ensure_services_schema($pdo);
+}
 $definitions = [
     'experience' => [
         'title' => 'Experience',

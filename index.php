@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/config.php';
+ensure_services_schema($pdo);
 
 // ---- Fetch all content up front (prepared statements throughout) ----
 $about = $pdo->query('SELECT * FROM about_content WHERE id = 1')->fetch() ?: [];

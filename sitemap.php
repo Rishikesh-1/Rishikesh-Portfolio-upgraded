@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/config.php';
+ensure_services_schema($pdo);
 header('Content-Type: application/xml; charset=utf-8');
 
 $urls = [

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/config.php';
+ensure_services_schema($pdo);
 
 $view = $_GET['view'] ?? 'about';
 $pages = [

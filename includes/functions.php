@@ -628,6 +628,40 @@ function get_setting(PDO $pdo, string $key, string $default = ''): string
     return $cache[$key] ?? $default;
 }
 
+// ------------------------------------------------------------
+// Clients ticker table — idempotent migration for databases created before the feature
+// ------------------------------------------------------------
+function ensure_clients_schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    if (get_setting($pdo, 'clients_schema_version') === '1') {
+        return;
+    }
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS clients (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(150) NOT NULL,
+            logo_image VARCHAR(255) NOT NULL,
+            website_url VARCHAR(255) DEFAULT NULL,
+            sort_order INT NOT NULL DEFAULT 0,
+            is_visible TINYINT(1) NOT NULL DEFAULT 1,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO site_settings (setting_key, setting_value) VALUES (:k, :v)
+         ON DUPLICATE KEY UPDATE setting_value = :v2'
+    );
+    $stmt->execute([':k' => 'clients_schema_version', ':v' => '1', ':v2' => '1']);
+}
+
 // Services feature helpers (schema migration, icons, card renderer)
 require_once __DIR__ . '/services-lib.php';
 

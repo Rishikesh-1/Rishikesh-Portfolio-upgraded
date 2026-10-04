@@ -10,6 +10,7 @@ if ($showSlider === '0' || $showSlider === 'off') {
 $clientsHeading = get_setting($pdo, 'clients_heading', "Companies & Brands I've Worked With");
 $clientsSubheading = get_setting($pdo, 'clients_subheading', '');
 
+ensure_clients_schema($pdo);
 $stmt = $pdo->query('SELECT * FROM clients WHERE is_visible = 1 ORDER BY sort_order ASC, id DESC');
 $clients = $stmt->fetchAll();
 
