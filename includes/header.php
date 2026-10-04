@@ -38,17 +38,25 @@ $favicon          = get_setting($pdo, 'site_favicon', '');
 </head>
 <body class="<?= e($body_class ?? '') ?>" data-theme="dark">
 <div class="preloader" id="preloader" aria-label="Loading portfolio" role="status">
-	<div class="preloader-mark">RR</div>
-	<div class="preloader-line"><span></span></div>
+	<img src="<?= e(SITE_ROOT_URL) ?>/assets/img/loading.svg" alt="Loading" class="preloader-graphic">
 </div>
 <script>
-	window.setTimeout(function () {
+	window.addEventListener('load', function () {
 		var loader = document.getElementById('preloader');
 		if (loader) {
-			loader.classList.add('is-done');
-			loader.style.display = 'none';
+			window.setTimeout(function () {
+				loader.classList.add('is-done');
+				window.setTimeout(function () { loader.style.display = 'none'; }, 600);
+			}, 400);
 		}
-	}, 900);
+	});
+	window.setTimeout(function () {
+		var loader = document.getElementById('preloader');
+		if (loader && !loader.classList.contains('is-done')) {
+			loader.classList.add('is-done');
+			window.setTimeout(function () { loader.style.display = 'none'; }, 600);
+		}
+	}, 1800);
 </script>
 <canvas class="particle-field" id="particleField" aria-hidden="true"></canvas>
 <div class="ambient-shape ambient-shape-one" aria-hidden="true"></div>

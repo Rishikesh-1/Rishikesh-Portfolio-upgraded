@@ -317,4 +317,25 @@ document.addEventListener('DOMContentLoaded', function () {
       card.style.transform = '';
     });
   });
+
+  // Back to top button
+  var backToTop = document.getElementById('backToTop');
+  if (backToTop) {
+    var checkScroll = function () {
+      if (window.scrollY > 320) {
+        backToTop.classList.add('is-visible');
+      } else {
+        backToTop.classList.remove('is-visible');
+      }
+    };
+    window.addEventListener('scroll', checkScroll, { passive: true });
+    checkScroll();
+
+    backToTop.addEventListener('click', function () {
+      window.scrollTo({
+        top: 0,
+        behavior: reduceMotion ? 'auto' : 'smooth'
+      });
+    });
+  }
 });

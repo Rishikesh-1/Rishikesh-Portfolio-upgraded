@@ -25,8 +25,13 @@
     <p class="modal-description" data-modal-description></p>
   </div>
 </div>
+<button class="back-to-top" id="backToTop" type="button" aria-label="Back to top" title="Back to top">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M18 15l-6-6-6 6"/>
+  </svg>
+</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 <script src="https://unpkg.com/aos@2.3.4/dist/aos.js" defer></script>
-<script src="<?= e(SITE_ROOT_URL) ?>/assets/js/main.js?v=20261004-2" defer></script>
+<script src="<?= e(SITE_ROOT_URL) ?>/assets/js/main.js?v=20261004-3" defer></script>
 </body>
 </html>
