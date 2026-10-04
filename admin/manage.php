@@ -175,7 +175,8 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
             if (($field['type'] ?? '') === 'image') {
                 $hasUploadedFile = !empty($_FILES[$name]['name']) && ($_FILES[$name]['error'] === UPLOAD_ERR_OK);
                 $hasExistingFile = !empty($record[$name]);
-                if (!$hasUploadedFile && !$hasExistingFile) {
+                $hasLibraryFile = !empty($_POST[$name . '_existing']) && is_file(UPLOAD_DIR . basename($_POST[$name . '_existing']));
+                if (!$hasUploadedFile && !$hasExistingFile && !$hasLibraryFile) {
                     $error = $field['label'] . ' is required.';
                     break;
                 }
@@ -213,8 +214,17 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
         try {
             foreach ($fields as $fieldName => $field) {
                 if (($field['type'] ?? '') === 'image') {
-                    $newImage = handle_image_upload($_FILES[$fieldName] ?? [], $field['label']);
-                    if ($newImage) break;
+                    $uploaded = handle_image_upload($_FILES[$fieldName] ?? [], $field['label']);
+                    if ($uploaded) {
+                        $newImage = $uploaded;
+                        break;
+                    } elseif (!empty($_POST[$fieldName . '_existing'])) {
+                        $chosen = basename(trim($_POST[$fieldName . '_existing']));
+                        if (is_file(UPLOAD_DIR . $chosen)) {
+                            $newImage = $chosen;
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -241,13 +251,6 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
                 foreach ($values as $name => $value) $stmt->bindValue(':' . $name, $value);
                 $stmt->bindValue(':record_id', $id, PDO::PARAM_INT);
                 $stmt->execute();
-                if ($newImage) {
-                    foreach ($fields as $fieldName => $field) {
-                        if (($field['type'] ?? '') === 'image' && !empty($record[$fieldName])) {
-                            delete_uploaded_file($record[$fieldName]);
-                        }
-                    }
-                }
             }
 
             header('Location: manage.php?section=' . urlencode($section) . '&saved=1');
@@ -288,9 +291,29 @@ if ($action === 'add' || $action === 'edit') {
                     <div class="form-group"><label><?= e($label) ?></label><select name="<?= e($name) ?>"<?= !empty($field['required']) ? ' required' : '' ?>><?php foreach ($field['options'] as $option): ?><option value="<?= e($option) ?>" <?= (string)$value === (string)$option ? 'selected' : '' ?>><?= e($option) ?></option><?php endforeach; ?></select></div>
         <?php elseif ($type === 'image'): ?>
           <div class="form-group"><label><?= e($label) ?></label>
-            <?php if ($value): ?><img src="<?= e(UPLOAD_URL . $value) ?>" alt="" style="max-height:80px;max-width:160px;object-fit:contain;border-radius:4px;margin-bottom:8px;display:block;background:rgba(255,255,255,0.05);padding:6px;"><?php endif; ?>
-            <input type="file" name="<?= e($name) ?>" accept=".jpg,.jpeg,.png,.webp,.svg">
-            <small style="color:var(--text-muted);display:block;margin-top:4px;">Supported formats: JPEG (.jpeg, .jpg), PNG (.png), SVG (.svg), and WebP (.webp).</small>
+            <?php if ($value): ?>
+              <div style="margin-bottom:8px;">
+                <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Current image:</span>
+                <img src="<?= e(UPLOAD_URL . $value) ?>" alt="" style="max-height:80px;max-width:160px;object-fit:contain;border-radius:4px;display:block;background:rgba(255,255,255,0.05);padding:6px;border:1px solid var(--hairline);">
+              </div>
+            <?php endif; ?>
+
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('<?= e($name) ?>', '<?= e(addslashes($label)) ?>')" style="display:inline-flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                📁 Choose from Media Library
+              </button>
+              <span class="badge" id="<?= e($name) ?>_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+              <button type="button" class="btn btn-ghost btn-sm" id="<?= e($name) ?>_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('<?= e($name) ?>')">✕ Clear</button>
+            </div>
+
+            <div id="<?= e($name) ?>_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+              <img id="<?= e($name) ?>_preview_img" src="" alt="" style="max-height:80px;max-width:160px;object-fit:contain;border-radius:4px;display:block;background:rgba(255,255,255,0.05);padding:6px;border:1px solid var(--accent);">
+            </div>
+
+            <input type="hidden" name="<?= e($name) ?>_existing" id="<?= e($name) ?>_existing" value="">
+            <input type="file" id="<?= e($name) ?>_file_input" name="<?= e($name) ?>" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="clearMediaSelection('<?= e($name) ?>')">
+            <small style="color:var(--text-muted);display:block;margin-top:4px;">Upload from your computer or pick an existing image from the Media Library. Formats: JPEG, PNG, SVG, WebP, GIF.</small>
           </div>
         <?php else: ?>
           <div class="form-group"><label><?= e($label) ?></label><input type="<?= e($type) ?>" name="<?= e($name) ?>" value="<?= e((string)$value) ?>"<?= $maxlength . $min . $max ?><?= !empty($field['required']) ? ' required' : '' ?>></div>

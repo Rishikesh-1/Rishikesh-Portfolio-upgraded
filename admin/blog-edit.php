@@ -39,12 +39,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newImage = null;
         try {
             $newImage = handle_image_upload($_FILES['cover_image'] ?? [], 'cover image');
+            if (!$newImage && !empty($_POST['cover_image_existing'])) {
+                $cand = basename(trim($_POST['cover_image_existing']));
+                if (is_file(UPLOAD_DIR . $cand)) {
+                    $newImage = $cand;
+                }
+            }
             $coverImage = $post['cover_image'];
             if ($newImage) {
-                delete_uploaded_file($coverImage);
                 $coverImage = $newImage;
             } elseif (isset($_POST['remove_image'])) {
-                delete_uploaded_file($coverImage);
                 $coverImage = null;
             }
 
@@ -96,8 +100,29 @@ require __DIR__ . '/includes/admin-header.php';
   <div class="form-row">
     <div class="form-group">
       <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
-      <?php if ($post['cover_image']): ?><img src="<?= e(UPLOAD_URL . $post['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;margin-bottom:8px;"><label style="font-weight:400;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;margin-right:6px;"> Remove current image</label><?php endif; ?>
-      <input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif">
+      <?php if ($post['cover_image']): ?>
+        <div style="margin-bottom:8px;">
+          <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Current cover:</span>
+          <img src="<?= e(UPLOAD_URL . $post['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;display:block;border:1px solid var(--hairline);">
+          <label style="font-weight:400;font-size:0.85rem;margin-top:6px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;"> Remove current image</label>
+        </div>
+      <?php endif; ?>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">✕ Clear</button>
+      </div>
+
+      <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
+      </div>
+
+      <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
+      <input type="file" id="cover_image_file_input" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="clearMediaSelection('cover_image')">
     </div>
     <div class="form-group"><label>Tags</label><input type="text" name="tags" maxlength="255" value="<?= e($_POST['tags'] ?? '') ?>"></div>
   </div>

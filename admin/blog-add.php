@@ -29,6 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $coverImage = null;
         try {
             $coverImage = handle_image_upload($_FILES['cover_image'] ?? [], 'cover image');
+            if (!$coverImage && !empty($_POST['cover_image_existing'])) {
+                $cand = basename(trim($_POST['cover_image_existing']));
+                if (is_file(UPLOAD_DIR . $cand)) {
+                    $coverImage = $cand;
+                }
+            }
             $baseSlug = make_slug($title);
             if ($baseSlug === '') {
                 throw new RuntimeException('Title must contain letters or numbers so a URL can be created.');
@@ -84,7 +90,24 @@ require __DIR__ . '/includes/admin-header.php';
   <?= csrf_field() ?>
   <div class="form-group"><label>Title</label><input type="text" name="title" required maxlength="200" value="<?= e($_POST['title'] ?? '') ?>"></div>
   <div class="form-row">
-    <div class="form-group"><label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label><input type="file" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif"></div>
+    <div class="form-group">
+      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">✕ Clear</button>
+      </div>
+
+      <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
+      </div>
+
+      <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
+      <input type="file" id="cover_image_file_input" name="cover_image" accept=".jpg,.jpeg,.png,.webp,.svg,.gif" onchange="clearMediaSelection('cover_image')">
+    </div>
     <div class="form-group"><label>Tags</label><input type="text" name="tags" maxlength="255" placeholder="design, marketing" value="<?= e($_POST['tags'] ?? '') ?>"></div>
   </div>
     <div class="form-group"><label>Excerpt (20-word preview)</label><textarea name="excerpt" rows="3" maxlength="300" class="<?= $excerptError !== '' ? 'field-invalid' : '' ?>" <?= $excerptError !== '' ? 'aria-invalid="true" aria-describedby="excerpt-error"' : '' ?>><?= e($_POST['excerpt'] ?? '') ?></textarea><?php if ($excerptError !== ''): ?><p class="field-error" id="excerpt-error" role="alert"><?= e($excerptError) ?></p><?php endif; ?></div>

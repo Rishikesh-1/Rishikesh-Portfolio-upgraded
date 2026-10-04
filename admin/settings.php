@@ -19,14 +19,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $bio       = trim($_POST['bio_text'] ?? '');
         $currentFavicon = $settings['site_favicon'] ?? '';
         $newFavicon = handle_image_upload($_FILES['site_favicon'] ?? [], 'site favicon');
+        if (!$newFavicon && !empty($_POST['site_favicon_existing'])) {
+            $cand = basename(trim($_POST['site_favicon_existing']));
+            if (is_file(UPLOAD_DIR . $cand)) $newFavicon = $cand;
+        }
+
         $currentLogo = $settings['site_logo_image'] ?? '';
         $newLogo = handle_image_upload($_FILES['site_logo_image'] ?? [], 'site logo');
+        if (!$newLogo && !empty($_POST['site_logo_image_existing'])) {
+            $cand = basename(trim($_POST['site_logo_image_existing']));
+            if (is_file(UPLOAD_DIR . $cand)) $newLogo = $cand;
+        }
+
         $currentLoader = $settings['site_loader_file'] ?? '';
         $newLoader = handle_loader_upload($_FILES['site_loader_file'] ?? []);
+        if (!$newLoader && !empty($_POST['site_loader_file_existing'])) {
+            $cand = basename(trim($_POST['site_loader_file_existing']));
+            if (is_file(UPLOAD_DIR . $cand)) $newLoader = $cand;
+        }
 
         $profileImage = $about['profile_image'];
         $newProfile = handle_image_upload($_FILES['profile_image'] ?? [], 'profile photo');
-        if ($newProfile) { delete_uploaded_file($profileImage); $profileImage = $newProfile; }
+        if (!$newProfile && !empty($_POST['profile_image_existing'])) {
+            $cand = basename(trim($_POST['profile_image_existing']));
+            if (is_file(UPLOAD_DIR . $cand)) $newProfile = $cand;
+        }
+        if ($newProfile) { $profileImage = $newProfile; }
 
         $resumeFile = $about['resume_file'];
         if (!empty($_FILES['resume_file']['name'])) {
@@ -60,27 +78,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $showSlider = !empty($_POST['show_clients_slider']) ? '1' : '0';
         $upd->execute([':k' => 'show_clients_slider', ':v' => $showSlider, ':v2' => $showSlider]);
         if (!empty($_POST['remove_site_favicon'])) {
-          delete_uploaded_file($currentFavicon);
           $upd->execute([':k' => 'site_favicon', ':v' => '', ':v2' => '']);
         } elseif ($newFavicon) {
           $upd->execute([':k' => 'site_favicon', ':v' => $newFavicon, ':v2' => $newFavicon]);
-          delete_uploaded_file($currentFavicon);
         }
 
         if (!empty($_POST['remove_site_logo_image'])) {
-          delete_uploaded_file($currentLogo);
           $upd->execute([':k' => 'site_logo_image', ':v' => '', ':v2' => '']);
         } elseif ($newLogo) {
           $upd->execute([':k' => 'site_logo_image', ':v' => $newLogo, ':v2' => $newLogo]);
-          delete_uploaded_file($currentLogo);
         }
 
         if (!empty($_POST['remove_site_loader_file'])) {
-          delete_uploaded_file($currentLoader);
           $upd->execute([':k' => 'site_loader_file', ':v' => '', ':v2' => '']);
         } elseif ($newLoader) {
           $upd->execute([':k' => 'site_loader_file', ':v' => $newLoader, ':v2' => $newLoader]);
-          delete_uploaded_file($currentLoader);
         }
 
         $success = true;
@@ -120,8 +132,28 @@ require __DIR__ . '/includes/admin-header.php';
   <div class="form-row">
     <div class="form-group">
       <label>Profile photo</label>
-      <?php if ($about['profile_image']): ?><img src="<?= e(UPLOAD_URL . $about['profile_image']) ?>" style="width:80px;border-radius:4px;margin-bottom:8px;"><?php endif; ?>
-      <input type="file" name="profile_image" accept=".jpg,.jpeg,.png,.webp">
+      <?php if ($about['profile_image']): ?>
+        <div style="margin-bottom:8px;">
+          <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Current photo:</span>
+          <img src="<?= e(UPLOAD_URL . $about['profile_image']) ?>" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid var(--hairline);">
+        </div>
+      <?php endif; ?>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('profile_image', 'Profile photo')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="profile_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="profile_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('profile_image')">✕ Clear</button>
+      </div>
+
+      <div id="profile_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="profile_image_preview_img" src="" alt="" style="width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
+      </div>
+
+      <input type="hidden" name="profile_image_existing" id="profile_image_existing" value="">
+      <input type="file" id="profile_image_file_input" name="profile_image" accept=".jpg,.jpeg,.png,.webp" onchange="clearMediaSelection('profile_image')">
     </div>
     <div class="form-group">
       <label>Résumé (PDF)</label>
@@ -138,8 +170,23 @@ require __DIR__ . '/includes/admin-header.php';
         <p style="display:flex;align-items:center;gap:8px;font-size:0.85rem;margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_favicon']) ?>" alt="Current browser tab icon" style="width:32px;height:32px;object-fit:contain;"><span>Current icon</span></p>
         <label style="font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_site_favicon" value="1" style="width:auto;display:inline;"> Remove current icon</label>
       <?php endif; ?>
-      <input type="file" name="site_favicon" accept=".jpg,.jpeg,.png,.webp">
-      <small>Upload a JPG, PNG, or WEBP image. A square PNG is recommended.</small>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_favicon', 'Browser Tab Icon')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="site_favicon_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_favicon_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_favicon')">✕ Clear</button>
+      </div>
+
+      <div id="site_favicon_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="site_favicon_preview_img" src="" alt="" style="width:32px;height:32px;object-fit:contain;border:1px solid var(--accent);border-radius:4px;padding:2px;">
+      </div>
+
+      <input type="hidden" name="site_favicon_existing" id="site_favicon_existing" value="">
+      <input type="file" id="site_favicon_file_input" name="site_favicon" accept=".jpg,.jpeg,.png,.webp" onchange="clearMediaSelection('site_favicon')">
+      <small>Upload a JPG, PNG, or WEBP image or choose from library. A square PNG is recommended.</small>
     </div>
     <div class="form-group">
       <label>Logo image (optional)</label>
@@ -147,8 +194,23 @@ require __DIR__ . '/includes/admin-header.php';
         <p style="margin-bottom:8px;"><img src="<?= e(UPLOAD_URL . $settings['site_logo_image']) ?>" alt="Current navigation logo" style="width:120px;height:40px;object-fit:contain;"></p>
         <label style="font-size:0.85rem;margin-bottom:8px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_site_logo_image" value="1" style="width:auto;display:inline;"> Remove current logo image (use brand text instead)</label>
       <?php endif; ?>
-      <input type="file" name="site_logo_image" accept=".jpg,.jpeg,.png,.webp">
-      <small>Upload a transparent PNG or WEBP for best results.</small>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_logo_image', 'Navigation Logo')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="site_logo_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_logo_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_logo_image')">✕ Clear</button>
+      </div>
+
+      <div id="site_logo_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="site_logo_image_preview_img" src="" alt="" style="max-height:50px;max-width:160px;object-fit:contain;border:1px solid var(--accent);border-radius:4px;padding:4px;background:rgba(255,255,255,0.05);">
+      </div>
+
+      <input type="hidden" name="site_logo_image_existing" id="site_logo_image_existing" value="">
+      <input type="file" id="site_logo_image_file_input" name="site_logo_image" accept=".jpg,.jpeg,.png,.webp,.svg" onchange="clearMediaSelection('site_logo_image')">
+      <small>Upload a transparent PNG, SVG, or WEBP for best results.</small>
     </div>
   </div>
 
@@ -181,8 +243,23 @@ require __DIR__ . '/includes/admin-header.php';
           <?php endif; ?>
         </div>
       </div>
-      <input type="file" name="site_loader_file" accept=".svg,.gif,.png,.webp">
-      <small>Download any loader SVG file and upload it here to replace the website's initial loading screen.</small>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('site_loader_file', 'Preloader Graphic')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          📁 Choose from Media Library
+        </button>
+        <span class="badge" id="site_loader_file_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="site_loader_file_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('site_loader_file')">✕ Clear</button>
+      </div>
+
+      <div id="site_loader_file_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+        <img id="site_loader_file_preview_img" src="" alt="" style="max-height:60px;max-width:60px;object-fit:contain;border:1px solid var(--accent);border-radius:4px;padding:4px;background:rgba(255,255,255,0.05);">
+      </div>
+
+      <input type="hidden" name="site_loader_file_existing" id="site_loader_file_existing" value="">
+      <input type="file" id="site_loader_file_file_input" name="site_loader_file" accept=".svg,.gif,.png,.webp" onchange="clearMediaSelection('site_loader_file')">
+      <small>Download any loader SVG or GIF file and upload it here or choose from the Media Library to replace the website's initial loading screen.</small>
     </div>
   </div>
 

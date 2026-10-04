@@ -179,6 +179,11 @@
         selectMediaItem(item, card);
       });
 
+      card.addEventListener('dblclick', function() {
+        selectMediaItem(item, card);
+        mediaModalConfirmInsert(false);
+      });
+
       grid.appendChild(card);
 
       if (selectFilename && item.filename === selectFilename) {
@@ -203,21 +208,25 @@
 
     const altInput = document.getElementById('media-sidebar-alt');
     const captionInput = document.getElementById('media-sidebar-caption');
-    altInput.value = '';
-    captionInput.value = '';
-
-    // If options specify cover image mode
     const captionGroup = document.getElementById('media-sidebar-caption-group');
     const captionBtn = document.getElementById('media-sidebar-insert-caption-btn');
     const insertBtn = document.getElementById('media-sidebar-insert-btn');
+    const altGroup = altInput ? altInput.closest('.form-group') : null;
 
-    if (modalOptions.mode === 'cover_image') {
+    altInput.value = '';
+    captionInput.value = '';
+
+    const isSingleSelect = modalOptions.mode === 'select_single' || modalOptions.mode === 'cover_image' || typeof modalOptions.onSelect === 'function';
+
+    if (isSingleSelect) {
       captionGroup.style.display = 'none';
       captionBtn.style.display = 'none';
-      insertBtn.textContent = 'Use as Cover Image';
+      if (altGroup) altGroup.style.display = 'none';
+      insertBtn.textContent = modalOptions.selectButtonText || (modalOptions.mode === 'cover_image' ? 'Use as Cover Image' : 'Select This Image');
     } else {
       captionGroup.style.display = '';
       captionBtn.style.display = '';
+      if (altGroup) altGroup.style.display = '';
       insertBtn.textContent = 'Insert Image into Post';
     }
   }
@@ -424,5 +433,52 @@
       }
     });
   }
+
+  // Universal helper for form image fields to pick from media library
+  window.chooseFromMediaLibrary = function(fieldName, fieldLabel) {
+    window.openMediaLibrary({
+      mode: 'select_single',
+      selectButtonText: fieldLabel ? ('Use for ' + fieldLabel) : 'Select This Image',
+      onSelect: function(data) {
+        const input = document.getElementById(fieldName + '_existing');
+        const badge = document.getElementById(fieldName + '_selected_badge');
+        const clearBtn = document.getElementById(fieldName + '_clear_btn');
+        const previewWrap = document.getElementById(fieldName + '_preview_wrap');
+        const previewImg = document.getElementById(fieldName + '_preview_img');
+        const fileInput = document.getElementById(fieldName + '_file_input') || document.querySelector('input[name="' + fieldName + '"][type="file"]');
+
+        if (input) input.value = data.filename;
+        if (badge) {
+          badge.textContent = '✓ Library: ' + data.filename;
+          badge.style.display = 'inline-flex';
+        }
+        if (clearBtn) clearBtn.style.display = 'inline-flex';
+        if (previewWrap && previewImg) {
+          previewImg.src = data.item ? data.item.admin_preview_url : ('../uploads/' + data.filename);
+          previewWrap.style.display = 'flex';
+        }
+        if (fileInput) {
+          fileInput.value = '';
+        }
+      }
+    });
+  };
+
+  window.clearMediaSelection = function(fieldName) {
+    const input = document.getElementById(fieldName + '_existing');
+    const badge = document.getElementById(fieldName + '_selected_badge');
+    const clearBtn = document.getElementById(fieldName + '_clear_btn');
+    const previewWrap = document.getElementById(fieldName + '_preview_wrap');
+    const previewImg = document.getElementById(fieldName + '_preview_img');
+
+    if (input) input.value = '';
+    if (badge) {
+      badge.textContent = '';
+      badge.style.display = 'none';
+    }
+    if (clearBtn) clearBtn.style.display = 'none';
+    if (previewWrap) previewWrap.style.display = 'none';
+    if (previewImg) previewImg.src = '';
+  };
 })();
 </script>
