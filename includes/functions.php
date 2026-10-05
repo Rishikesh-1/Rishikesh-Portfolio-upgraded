@@ -532,7 +532,7 @@ function handle_image_upload(array $file, string $fieldNameForError = 'image'): 
  */
 function handle_loader_upload(array $file): ?string
 {
-    if (!isset($file) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+    if (empty($file) || !isset($file['error']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
         return null;
     }
     if ($file['error'] !== UPLOAD_ERR_OK) {
