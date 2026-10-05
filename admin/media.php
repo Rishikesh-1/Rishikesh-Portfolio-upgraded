@@ -610,10 +610,32 @@ function copyDrawerUrl() {
   });
 }
 
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+  })[m]);
+}
+
+function showMediaToast(msg) {
+  let toast = document.getElementById('media-floating-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'media-floating-toast';
+    toast.style = 'position:fixed;bottom:28px;right:28px;z-index:99999;background:rgba(15,23,42,0.95);border:1px solid #2ed573;color:#2ed573;padding:12px 20px;border-radius:10px;font-size:0.9rem;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,0.6);display:flex;align-items:center;gap:8px;transform:translateY(20px);opacity:0;transition:all 0.25s cubic-bezier(0.16,1,0.3,1);backdrop-filter:blur(10px);';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = msg;
+  toast.style.transform = 'translateY(0)';
+  toast.style.opacity = '1';
+  setTimeout(() => {
+    toast.style.transform = 'translateY(20px)';
+    toast.style.opacity = '0';
+  }, 2800);
+}
+
 function saveDrawerMetadata() {
   if (!currentDrawerItem) return;
   const btn = document.getElementById('drawer-save-btn');
-  const statusEl = document.getElementById('drawer-save-status');
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
@@ -633,23 +655,35 @@ function saveDrawerMetadata() {
       btn.disabled = false;
       btn.textContent = 'Save Details';
       if (data && data.success) {
-        statusEl.style.display = 'inline';
-        statusEl.textContent = 'Saved successfully!';
-        setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+        const savedFilename = currentDrawerItem.filename;
 
-        // Update active item and grid card attributes
-        currentDrawerItem.title = data.title;
-        currentDrawerItem.alt_text = data.alt_text;
-        currentDrawerItem.caption = data.caption;
-        currentDrawerItem.description = data.description;
-
-        const card = document.querySelector(`.media-library-card[data-filename="${currentDrawerItem.filename.toLowerCase()}"]`);
+        // Update card attributes and DOM in the grid
+        const card = document.querySelector(`.media-library-card[data-filename="${savedFilename.toLowerCase()}"]`);
         if (card) {
           card.setAttribute('data-title', (data.title || '').toLowerCase());
           card.setAttribute('data-alt', (data.alt_text || '').toLowerCase());
           const titleEl = card.querySelector('.media-library-card-title');
           if (titleEl) titleEl.textContent = data.title;
+
+          let altBadge = card.querySelector('.media-alt-badge');
+          if (data.alt_text) {
+            if (!altBadge) {
+              altBadge = document.createElement('span');
+              altBadge.className = 'media-alt-badge';
+              const bodyEl = card.querySelector('.media-library-card-body');
+              const metaEl = card.querySelector('.media-library-card-meta');
+              bodyEl.insertBefore(altBadge, metaEl);
+            }
+            altBadge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:11px;height:11px;" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Alt: ${escapeHtml(data.alt_text)}`;
+            altBadge.title = 'Alt: ' + data.alt_text;
+          } else if (altBadge) {
+            altBadge.remove();
+          }
         }
+
+        // Close drawer and display success toast notification
+        closeMediaDrawer();
+        showMediaToast('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved successfully!');
       } else {
         alert((data && data.error) ? data.error : 'Failed to save changes.');
       }
