@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/config.php';
+ensure_projects_schema($pdo);
 ensure_services_schema($pdo);
 ensure_products_schema($pdo);
 
@@ -88,8 +89,8 @@ $bioText = trim((string) ($about['bio_text'] ?? ''));
 $bioWords = preg_split('/\s+/', $bioText);
 $bioPreview = $bioText;
 
-if (!empty($bioWords) && count($bioWords) > 150) {
-  $bioPreview = implode(' ', array_slice($bioWords, 0, 150)) . '...';
+if (!empty($bioWords) && count($bioWords) > 60) {
+  $bioPreview = implode(' ', array_slice($bioWords, 0, 60)) . '...';
 }
 ?>
 
@@ -127,7 +128,15 @@ if (!empty($bioWords) && count($bioWords) > 150) {
           <?php endif; ?>
         </div>
         <div class="project-body">
-          <?php if ($p['category_name']): ?><p class="project-cat"><?= e($p['category_name']) ?></p><?php endif; ?>
+          <?php if (!empty($p['category_name']) || !empty($p['job_role'])): ?>
+            <p class="project-cat">
+              <?= e($p['category_name'] ?? 'Project') ?>
+              <?php if (!empty($p['job_role'])): ?>
+                <span class="project-role-sep" style="opacity:0.5;margin:0 4px;">&bull;</span>
+                <span class="project-role-badge" style="color:var(--accent);font-weight:600;"><?= e($p['job_role']) ?></span>
+              <?php endif; ?>
+            </p>
+          <?php endif; ?>
           <h3 class="project-title"><a href="<?= e(SITE_ROOT_URL . '/project.php?slug=' . urlencode($p['slug'])) ?>"><?= e($p['title']) ?></a></h3>
           <?php if ($p['short_description']): ?><div class="project-desc"><?= limit_rich_text_words((string) $p['short_description'], 20) ?></div><?php endif; ?>
           <div class="project-links">

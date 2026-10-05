@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_admin_login();
+ensure_projects_schema($pdo);
 
 $categories = $pdo->query('SELECT * FROM project_categories ORDER BY name ASC')->fetchAll();
 $tags = $pdo->query('SELECT * FROM tags ORDER BY name ASC')->fetchAll();
@@ -12,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title             = trim($_POST['title'] ?? '');
     $categoryId        = $_POST['category_id'] !== '' ? (int)$_POST['category_id'] : null;
+    $jobRole           = trim($_POST['job_role'] ?? '');
     $shortDescription  = trim($_POST['short_description'] ?? '');
     $description       = trim($_POST['description'] ?? '');
     $externalUrl       = trim($_POST['external_url'] ?? '');
@@ -37,6 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
+            if ($coverImage) {
+                update_media_metadata($pdo, $coverImage, [
+                    'title' => $title,
+                    'alt_text' => $metaTitle ?: $title,
+                    'caption' => $shortDescription ?: '',
+                    'description' => $metaDescription ?: $shortDescription,
+                ]);
+            }
+
             // Build a unique slug.
             $baseSlug = make_slug($title);
             $slug = $baseSlug;
@@ -50,13 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt = $pdo->prepare(
                 'INSERT INTO projects
-                 (title, slug, category_id, short_description, description, cover_image, external_url, github_url, is_featured, is_visible, meta_title, meta_description)
-                 VALUES (:title, :slug, :category_id, :short_description, :description, :cover_image, :external_url, :github_url, :is_featured, :is_visible, :meta_title, :meta_description)'
+                 (title, slug, category_id, job_role, short_description, description, cover_image, external_url, github_url, is_featured, is_visible, meta_title, meta_description)
+                 VALUES (:title, :slug, :category_id, :job_role, :short_description, :description, :cover_image, :external_url, :github_url, :is_featured, :is_visible, :meta_title, :meta_description)'
             );
             $stmt->execute([
                 ':title'             => $title,
                 ':slug'              => $slug,
                 ':category_id'       => $categoryId,
+                ':job_role'          => $jobRole !== '' ? $jobRole : null,
                 ':short_description' => $shortDescription,
                 ':description'       => $description,
                 ':cover_image'       => $coverImage,
@@ -101,28 +113,34 @@ require __DIR__ . '/includes/admin-header.php';
       <select name="category_id">
         <option value="">— None —</option>
         <?php foreach ($categories as $c): ?>
-          <option value="<?= (int)$c['id'] ?>"><?= e($c['name']) ?></option>
+          <option value="<?= (int)$c['id'] ?>" <?= ((int)($_POST['category_id'] ?? 0) === (int)$c['id']) ? 'selected' : '' ?>><?= e($c['name']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>
     <div class="form-group">
-      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Project Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Choose from Media Library
-        </button>
-        <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
-      </div>
-
-      <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
-        <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
-      </div>
-
-      <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
-      <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
+      <label>Job Role / Position on Project</label>
+      <input type="text" name="job_role" placeholder="e.g. Lead Designer, Full Stack Developer" maxlength="180" value="<?= e($_POST['job_role'] ?? '') ?>">
+      <small class="form-hint">Your role or responsibility in this project.</small>
     </div>
+  </div>
+
+  <div class="form-group">
+    <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Project Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Choose from Media Library
+      </button>
+      <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+      <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
+    </div>
+
+    <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+      <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
+    </div>
+
+    <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
+    <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
   </div>
 
   <div class="form-group">

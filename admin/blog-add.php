@@ -35,6 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $coverImage = $cand;
                 }
             }
+
+            if ($coverImage) {
+                update_media_metadata($pdo, $coverImage, [
+                    'title' => $title,
+                    'alt_text' => $metaTitle ?: $title,
+                    'caption' => $excerpt ?: '',
+                    'description' => $metaDescription ?: $excerpt,
+                ]);
+            }
             $baseSlug = make_slug($title);
             if ($baseSlug === '') {
                 throw new RuntimeException('Title must contain letters or numbers so a URL can be created.');

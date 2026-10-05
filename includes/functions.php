@@ -671,6 +671,27 @@ function ensure_clients_schema(PDO $pdo): void
 }
 
 // ------------------------------------------------------------
+// Projects schema migration (Job role on projects)
+// ------------------------------------------------------------
+function ensure_projects_schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    try {
+        $cols = $pdo->query("SHOW COLUMNS FROM projects LIKE 'job_role'")->fetchAll();
+        if (empty($cols)) {
+            $pdo->exec("ALTER TABLE projects ADD COLUMN job_role VARCHAR(180) DEFAULT NULL AFTER category_id");
+        }
+    } catch (Throwable $e) {
+        // Ignore if already exists or permission restricted
+    }
+}
+
+// ------------------------------------------------------------
 // Media library metadata & rename management
 // ------------------------------------------------------------
 function ensure_media_schema(PDO $pdo): void

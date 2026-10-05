@@ -362,6 +362,20 @@ if (($action === 'add' || $action === 'edit') && $_SERVER['REQUEST_METHOD'] === 
                 $savedId = $id;
             }
 
+            // Sync metadata to media_items table for any image saved
+            $metaItemTitle = trim($_POST['title'] ?? $_POST['name'] ?? $_POST['client_name'] ?? $_POST['role_title'] ?? ($definitions[$section]['title'] ?? ''));
+            $metaItemDesc = trim($_POST['meta_description'] ?? $_POST['description'] ?? $_POST['overview'] ?? $_POST['tagline'] ?? $_POST['quote'] ?? '');
+            $metaItemAlt = trim($_POST['meta_title'] ?? $metaItemTitle);
+            foreach ($fields as $fName => $fDef) {
+                if (($fDef['type'] ?? '') === 'image' && !empty($values[$fName])) {
+                    update_media_metadata($pdo, $values[$fName], [
+                        'title' => $metaItemTitle,
+                        'alt_text' => $metaItemAlt,
+                        'description' => $metaItemDesc,
+                    ]);
+                }
+            }
+
             // Sync related projects for services
             if ($section === 'services' && $savedId) {
                 $selectedProjects = isset($_POST['linked_projects']) && is_array($_POST['linked_projects'])

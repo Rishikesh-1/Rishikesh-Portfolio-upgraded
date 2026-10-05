@@ -52,6 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $coverImage = null;
             }
 
+            if ($coverImage) {
+                update_media_metadata($pdo, $coverImage, [
+                    'title' => $title,
+                    'alt_text' => $metaTitle ?: $title,
+                    'caption' => $excerpt ?: '',
+                    'description' => $metaDescription ?: $excerpt,
+                ]);
+            }
+
             $publishedAt = null;
             if ($isPublished) {
                 $publishedAt = $publishedInput !== '' ? str_replace('T', ' ', $publishedInput) . ':00' : date('Y-m-d H:i:s');

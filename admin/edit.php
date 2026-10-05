@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_admin_login();
+ensure_projects_schema($pdo);
 
 $id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare('SELECT * FROM projects WHERE id = :id');
@@ -25,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $title             = trim($_POST['title'] ?? '');
     $categoryId        = $_POST['category_id'] !== '' ? (int)$_POST['category_id'] : null;
+    $jobRole           = trim($_POST['job_role'] ?? '');
     $shortDescription  = trim($_POST['short_description'] ?? '');
     $description       = trim($_POST['description'] ?? '');
     $externalUrl       = trim($_POST['external_url'] ?? '');
@@ -58,9 +60,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $coverImage = null;
             }
 
+            if ($coverImage) {
+                update_media_metadata($pdo, $coverImage, [
+                    'title' => $title,
+                    'alt_text' => $metaTitle ?: $title,
+                    'caption' => $shortDescription ?: '',
+                    'description' => $metaDescription ?: $shortDescription,
+                ]);
+            }
+
             $stmt = $pdo->prepare(
                 'UPDATE projects SET
-                    title = :title, category_id = :category_id, short_description = :short_description,
+                    title = :title, category_id = :category_id, job_role = :job_role, short_description = :short_description,
                     description = :description, cover_image = :cover_image, external_url = :external_url,
                     github_url = :github_url, is_featured = :is_featured, is_visible = :is_visible,
                     meta_title = :meta_title, meta_description = :meta_description
@@ -69,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([
                 ':title'             => $title,
                 ':category_id'       => $categoryId,
+                ':job_role'          => $jobRole !== '' ? $jobRole : null,
                 ':short_description' => $shortDescription,
                 ':description'       => $description,
                 ':cover_image'       => $coverImage,
@@ -125,31 +137,37 @@ require __DIR__ . '/includes/admin-header.php';
       </select>
     </div>
     <div class="form-group">
-      <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
-      <?php if ($project['cover_image']): ?>
-        <div style="margin-bottom:8px;">
-          <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Current cover:</span>
-          <img src="<?= e(UPLOAD_URL . $project['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;display:block;border:1px solid var(--hairline);">
-          <label style="font-weight:400;font-size:0.85rem;margin-top:6px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;"> Remove current image</label>
-        </div>
-      <?php endif; ?>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Project Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          Choose from Media Library
-        </button>
-        <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
-      </div>
-
-      <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
-        <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
-      </div>
-
-      <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
-      <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
+      <label>Job Role / Position on Project</label>
+      <input type="text" name="job_role" placeholder="e.g. Lead Designer, Full Stack Developer" maxlength="180" value="<?= e($_POST['job_role'] ?? '') ?>">
+      <small class="form-hint">Your role or responsibility in this project.</small>
     </div>
+  </div>
+
+  <div class="form-group">
+    <label>Cover image (JPG, PNG, WEBP, SVG, or GIF — max 10MB)</label>
+    <?php if ($project['cover_image']): ?>
+      <div style="margin-bottom:8px;">
+        <span style="font-size:0.78rem;color:var(--text-muted);display:block;margin-bottom:4px;">Current cover:</span>
+        <img src="<?= e(UPLOAD_URL . $project['cover_image']) ?>" alt="" style="width:120px;border-radius:4px;display:block;border:1px solid var(--hairline);">
+        <label style="font-weight:400;font-size:0.85rem;margin-top:6px;display:flex;align-items:center;gap:6px;"><input type="checkbox" name="remove_image" style="width:auto;display:inline;"> Remove current image</label>
+      </div>
+    <?php endif; ?>
+
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="chooseFromMediaLibrary('cover_image', 'Project Cover Image')" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Choose from Media Library
+      </button>
+      <span class="badge" id="cover_image_selected_badge" style="display:none;background:rgba(92,225,255,0.15);color:var(--accent);border:1px solid rgba(92,225,255,0.3);padding:4px 8px;border-radius:4px;font-size:0.8rem;"></span>
+      <button type="button" class="btn btn-ghost btn-sm" id="cover_image_clear_btn" style="display:none;color:#ff6b6b;font-size:0.8rem;padding:3px 8px;" onclick="clearMediaSelection('cover_image')">Clear</button>
+    </div>
+
+    <div id="cover_image_preview_wrap" style="display:none;margin-bottom:8px;align-items:center;gap:10px;">
+      <img id="cover_image_preview_img" src="" alt="" style="max-height:90px;max-width:180px;object-fit:cover;border-radius:4px;border:1px solid var(--accent);">
+    </div>
+
+    <input type="hidden" name="cover_image_existing" id="cover_image_existing" value="">
+    <small style="color:var(--text-muted);display:block;margin-top:4px;">Click above to select or upload an image via the Media Library.</small>
   </div>
 
   <div class="form-group">

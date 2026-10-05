@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_admin_login();
+ensure_projects_schema($pdo);
 
 $projects = $pdo->query(
   'SELECT p.*, c.name AS category_name, GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR ", ") AS tag_names FROM projects p
@@ -38,12 +39,13 @@ require __DIR__ . '/includes/admin-header.php';
 
 <div class="admin-card" style="padding:0;">
   <table class="admin-table">
-    <thead><tr><th>Title</th><th>Category</th><th>Tags</th><th>Featured</th><th>Visible</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Title</th><th>Category</th><th>Role</th><th>Tags</th><th>Featured</th><th>Visible</th><th>Actions</th></tr></thead>
     <tbody>
     <?php foreach ($projects as $p): ?>
       <tr>
-        <td><?= e($p['title']) ?></td>
+        <td><strong><?= e($p['title']) ?></strong></td>
         <td><?= e($p['category_name'] ?? '—') ?></td>
+        <td><?= e($p['job_role'] ?? '—') ?></td>
         <td><?= e($p['tag_names'] ?? '—') ?></td>
         <td><span class="badge <?= $p['is_featured'] ? 'badge-on' : 'badge-off' ?>"><?= $p['is_featured'] ? 'Yes' : 'No' ?></span></td>
         <td><span class="badge <?= $p['is_visible'] ? 'badge-on' : 'badge-off' ?>"><?= $p['is_visible'] ? 'Live' : 'Hidden' ?></span></td>
@@ -56,7 +58,7 @@ require __DIR__ . '/includes/admin-header.php';
         </td>
       </tr>
     <?php endforeach; ?>
-    <?php if (!$projects): ?><tr><td colspan="6" style="color:var(--text-muted);">No projects yet. Add your first one.</td></tr><?php endif; ?>
+    <?php if (!$projects): ?><tr><td colspan="7" style="color:var(--text-muted);">No projects yet. Add your first one.</td></tr><?php endif; ?>
     </tbody>
   </table>
 </div>

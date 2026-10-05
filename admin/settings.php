@@ -95,6 +95,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           $upd->execute([':k' => 'site_loader_file', ':v' => $newLoader, ':v2' => $newLoader]);
         }
 
+        if ($profileImage) {
+            update_media_metadata($pdo, $profileImage, [
+                'title' => ($fullName ?: 'Profile') . ' Photo',
+                'alt_text' => ($fullName ?: 'Profile') . ($roleTitle ? ' - ' . $roleTitle : ' Photo'),
+                'description' => $tagline ?: $bio,
+            ]);
+        }
+        $savedLogo = $newLogo ?: ($settings['site_logo_image'] ?? '');
+        if ($savedLogo && empty($_POST['remove_site_logo_image'])) {
+            update_media_metadata($pdo, $savedLogo, [
+                'title' => ($fullName ?: 'Site') . ' Logo',
+                'alt_text' => ($fullName ?: 'Site') . ' Logo',
+            ]);
+        }
+
         $success = true;
         $about = $pdo->query('SELECT * FROM about_content WHERE id = 1')->fetch();
         $settingsRows = $pdo->query('SELECT * FROM site_settings')->fetchAll();

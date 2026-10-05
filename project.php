@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config/config.php';
+ensure_projects_schema($pdo);
 
 $slug = trim($_GET['slug'] ?? '');
 $stmt = $pdo->prepare(
@@ -65,6 +66,9 @@ require __DIR__ . '/includes/header.php';
 		<aside class="project-detail-aside">
 			<p class="detail-section-label">Project details</p>
 			<dl class="project-detail-facts">
+				<?php if (!empty($project['job_role'])): ?>
+					<div><dt>Role / Position</dt><dd><?= e($project['job_role']) ?></dd></div>
+				<?php endif; ?>
 				<div><dt>Discipline</dt><dd><?= e($project['category_name'] ?? 'Project') ?></dd></div>
 				<div><dt>Published</dt><dd><?= e(date('M Y', strtotime($project['created_at']))) ?></dd></div>
 			</dl>

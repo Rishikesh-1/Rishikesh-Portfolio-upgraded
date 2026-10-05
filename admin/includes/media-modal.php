@@ -100,7 +100,7 @@
 
               <!-- Save Metadata Button -->
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                <button type="button" class="btn btn-secondary btn-sm" id="media-sidebar-save-btn" onclick="mediaModalSaveMetadata()" style="font-size:0.78rem;">Save Details</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="media-sidebar-save-btn" onclick="mediaModalSaveMetadata(true)" style="font-size:0.78rem;">Save Details</button>
                 <span id="media-sidebar-save-status" style="font-size:0.76rem;color:#2ed573;display:none;">Saved!</span>
               </div>
 
@@ -319,8 +319,8 @@
     if (countBadge) countBadge.textContent = visibleCount + ' item' + (visibleCount === 1 ? '' : 's');
   };
 
-  window.mediaModalSaveMetadata = function() {
-    if (!selectedMediaItem) return;
+  window.mediaModalSaveMetadata = function(closeAfter) {
+    if (!selectedMediaItem) return Promise.resolve(null);
     const btn = document.getElementById('media-sidebar-save-btn');
     const statusEl = document.getElementById('media-sidebar-save-status');
     btn.disabled = true;
@@ -338,7 +338,7 @@
     payload.append('caption', document.getElementById('media-sidebar-caption').value);
     payload.append('description', document.getElementById('media-sidebar-desc').value);
 
-    fetch('media.php?action=update_meta', {
+    return fetch('media.php?action=update_meta', {
       method: 'POST',
       headers: {
         'X-CSRF-TOKEN': csrfToken,
@@ -364,17 +364,26 @@
         btn.textContent = 'Save Details';
         statusEl.style.display = 'inline';
         statusEl.textContent = 'Saved!';
-        setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
 
         selectedMediaItem.title = data.title;
         selectedMediaItem.alt_text = data.alt_text;
         selectedMediaItem.caption = data.caption;
         selectedMediaItem.description = data.description;
+
+        if (closeAfter) {
+          setTimeout(() => {
+            closeMediaLibrary();
+          }, 350);
+        } else {
+          setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+        }
+        return data;
       })
       .catch(err => {
         btn.disabled = false;
         btn.textContent = 'Save Details';
         alert('Error saving: ' + err.message);
+        throw err;
       });
   };
 
