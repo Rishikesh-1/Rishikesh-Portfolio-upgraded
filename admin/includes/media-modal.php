@@ -1,12 +1,13 @@
 <?php
 /**
  * media-modal.php — Universal Media Library Modal for Admin Dashboard.
- * Allows picking from existing uploaded images or uploading new images, with direct cursor insertion.
+ * Allows picking from existing uploaded images, managing SEO metadata (Alt Text, Title, Captions),
+ * safe file renaming, and direct cursor insertion.
  */
 ?>
 <style>
   .media-modal-backdrop { position: fixed; inset: 0; background: rgba(7, 11, 22, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .media-modal-container { width: 100%; max-width: 1060px; height: 85vh; max-height: 720px; background: rgba(15, 23, 42, 0.98); border: 1px solid var(--hairline, rgba(150, 180, 255, .2)); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; }
+  .media-modal-container { width: 100%; max-width: 1100px; height: 88vh; max-height: 760px; background: rgba(15, 23, 42, 0.98); border: 1px solid var(--hairline, rgba(150, 180, 255, .2)); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; overflow: hidden; }
   .media-modal-header { padding: 16px 22px; border-bottom: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
   .media-modal-tabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); }
   .media-tab-btn { padding: 6px 14px; border: 0; background: transparent; color: var(--text-muted, #aab5d1); font-size: 0.82rem; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
@@ -21,15 +22,15 @@
   .media-modal-main-layout { flex: 1; min-height: 0; display: flex; overflow: hidden; }
   .media-modal-grid-wrap { flex: 1; min-width: 0; overflow-y: auto; padding: 18px 22px; }
   .media-modal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
-  .media-modal-item { aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.4); overflow: hidden; position: relative; cursor: pointer; padding: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+  .media-modal-item { aspect-ratio: 1; border-radius: 10px; border: 2px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.4); overflow: hidden; position: relative; cursor: pointer; padding: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.2s ease; }
   .media-modal-item:hover { border-color: var(--accent, #5ce1ff); transform: translateY(-2px); }
   .media-modal-item.is-selected { border-color: var(--accent, #5ce1ff); box-shadow: 0 0 0 2px rgba(92, 225, 255, 0.4); }
-  .media-modal-item img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
-  .media-modal-sidebar { width: 310px; flex-shrink: 0; border-left: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.25); padding: 18px; overflow-y: auto; display: flex; flex-direction: column; }
-  .media-modal-sidebar-thumb { width: 100%; height: 160px; max-height: 160px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px; margin-bottom: 14px; }
+  .media-modal-item-thumb { width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .media-modal-item-thumb img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
+  .media-modal-item-name { width: 100%; font-size: 0.72rem; color: var(--text, #EDEEF0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; margin: 4px 0 0; }
+  .media-modal-sidebar { width: 340px; flex-shrink: 0; border-left: 1px solid var(--hairline, rgba(150, 180, 255, .18)); background: rgba(0, 0, 0, 0.25); padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .media-modal-sidebar-thumb { width: 100%; height: 150px; max-height: 150px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 8px; }
   .media-modal-sidebar-thumb img { max-width: 100% !important; max-height: 100% !important; width: auto; height: auto; object-fit: contain !important; border-radius: 4px; display: block; }
-  .media-modal-footer { padding: 14px 22px; border-top: 1px solid var(--hairline, rgba(150, 180, 255, .18)); display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-shrink: 0; background: rgba(0, 0, 0, 0.2); }
-  
   .media-modal-dropzone { flex: 1; margin: 32px; border: 2px dashed rgba(92, 225, 255, 0.35); border-radius: 16px; background: rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px 24px; transition: all 0.2s ease; cursor: pointer; }
   .media-modal-dropzone:hover, .media-modal-dropzone.is-dragover { border-color: var(--accent, #5ce1ff); background: rgba(92, 225, 255, 0.08); }
 </style>
@@ -39,7 +40,7 @@
   <div class="media-modal-container">
     <div class="media-modal-header">
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <h2 id="media-modal-title" style="margin:0;font-size:1.25rem;">Media Library</h2>
+        <h2 id="media-modal-title" style="margin:0;font-size:1.25rem;">Media Library &amp; SEO</h2>
         <div class="media-modal-tabs">
           <button type="button" class="media-tab-btn active" data-tab="browse" onclick="mediaModalSwitchTab('browse')">Browse Library</button>
           <button type="button" class="media-tab-btn" data-tab="upload" onclick="mediaModalSwitchTab('upload')">Upload New Image</button>
@@ -52,7 +53,7 @@
       <!-- TAB: BROWSE -->
       <div class="media-tab-content active" id="media-tab-browse">
         <div class="media-modal-toolbar">
-          <input type="search" id="media-modal-search" placeholder="Search images by name..." oninput="mediaModalFilter(this.value)">
+          <input type="search" id="media-modal-search" placeholder="Search by name, title or alt text..." oninput="mediaModalFilter(this.value)">
           <span id="media-modal-count" style="font-size:0.82rem;color:var(--text-muted);"></span>
         </div>
         <div class="media-modal-main-layout">
@@ -67,20 +68,54 @@
               <img id="media-sidebar-preview" src="" alt="">
             </div>
             <div class="media-modal-sidebar-info">
-              <p id="media-sidebar-name" style="font-weight:600;font-size:0.86rem;word-break:break-all;margin-bottom:4px;"></p>
-              <p id="media-sidebar-meta" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:12px;"></p>
+              <p id="media-sidebar-name" style="font-weight:600;font-size:0.84rem;word-break:break-all;margin-bottom:2px;"></p>
+              <p id="media-sidebar-meta" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;"></p>
 
-              <div class="form-group" style="margin-bottom:10px;">
-                <label style="font-size:0.8rem;margin-bottom:4px;">Alt description</label>
-                <input type="text" id="media-sidebar-alt" placeholder="Describe this image" style="font-size:0.85rem;">
+              <!-- Image Title -->
+              <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:0.78rem;margin-bottom:3px;font-weight:600;">Title</label>
+                <input type="text" id="media-sidebar-title" placeholder="Image display title" style="font-size:0.84rem;">
               </div>
 
-              <div class="form-group" style="margin-bottom:14px;" id="media-sidebar-caption-group">
-                <label style="font-size:0.8rem;margin-bottom:4px;">Caption (optional)</label>
-                <input type="text" id="media-sidebar-caption" placeholder="Visible image caption" style="font-size:0.85rem;">
+              <!-- Alt Text (SEO) -->
+              <div class="form-group" style="margin-bottom:8px;">
+                <label style="font-size:0.78rem;margin-bottom:3px;font-weight:600;display:flex;justify-content:space-between;">
+                  <span>Alt text (SEO)</span>
+                  <span style="font-size:0.7rem;color:var(--accent);font-weight:normal;">Auto-saved</span>
+                </label>
+                <input type="text" id="media-sidebar-alt" placeholder="Describe image for SEO & accessibility" style="font-size:0.84rem;">
               </div>
 
-              <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+              <!-- Caption -->
+              <div class="form-group" style="margin-bottom:8px;" id="media-sidebar-caption-group">
+                <label style="font-size:0.78rem;margin-bottom:3px;font-weight:600;">Caption (optional)</label>
+                <textarea id="media-sidebar-caption" rows="2" placeholder="Visible image caption" style="font-size:0.84rem;"></textarea>
+              </div>
+
+              <!-- Description -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-size:0.78rem;margin-bottom:3px;font-weight:600;">Description / Notes</label>
+                <textarea id="media-sidebar-desc" rows="2" placeholder="Internal notes or extended description" style="font-size:0.84rem;"></textarea>
+              </div>
+
+              <!-- Save Metadata Button -->
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <button type="button" class="btn btn-secondary btn-sm" id="media-sidebar-save-btn" onclick="mediaModalSaveMetadata()" style="font-size:0.78rem;">Save Details</button>
+                <span id="media-sidebar-save-status" style="font-size:0.76rem;color:#2ed573;display:none;">Saved!</span>
+              </div>
+
+              <!-- Safe Rename Section -->
+              <details style="background:rgba(255,255,255,0.03);border:1px solid var(--hairline);border-radius:6px;padding:8px 10px;margin-bottom:12px;">
+                <summary style="font-size:0.78rem;color:var(--accent);font-weight:600;cursor:pointer;">Rename file (Safe rename)</summary>
+                <div style="margin-top:8px;">
+                  <input type="text" id="media-sidebar-rename-input" placeholder="new-file-name" style="font-size:0.8rem;font-family:monospace;margin-bottom:6px;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="mediaModalRenameFile()" style="font-size:0.76rem;width:100%;">Rename &amp; Update All Links</button>
+                  <div id="media-sidebar-rename-status" style="display:none;font-size:0.72rem;margin-top:4px;"></div>
+                </div>
+              </details>
+
+              <!-- Main Action Buttons -->
+              <div style="display:flex;flex-direction:column;gap:8px;">
                 <button type="button" class="btn btn-primary btn-sm" id="media-sidebar-insert-btn" onclick="mediaModalConfirmInsert(false)">Insert Image into Post</button>
                 <button type="button" class="btn btn-secondary btn-sm" id="media-sidebar-insert-caption-btn" onclick="mediaModalConfirmInsert(true)">Insert with Caption</button>
                 <button type="button" class="btn btn-ghost btn-sm" id="media-sidebar-copy-btn" onclick="mediaModalCopyPath()">Copy image path</button>
@@ -142,7 +177,6 @@
     document.body.style.overflow = '';
   };
 
-  // Close on Escape or click outside
   window.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && modal.style.display === 'flex') {
       closeMediaLibrary();
@@ -179,31 +213,34 @@
         }
       })
       .catch(err => {
-        grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;grid-column:1/-1;">Failed to connect to server.</div>';
+        grid.innerHTML = '<div style="text-align:center;padding:40px;color:#ff6b6b;grid-column:1/-1;">Error loading images: ' + err.message + '</div>';
       });
   }
 
   function renderMediaGrid(items, selectFilename) {
-    if (!items || items.length === 0) {
-      grid.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);grid-column:1/-1;">No images in library. Click "Upload New Image" above!</div>';
-      if (countBadge) countBadge.textContent = '0 items';
+    grid.innerHTML = '';
+    if (countBadge) {
+      countBadge.textContent = items.length + ' image' + (items.length === 1 ? '' : 's');
+    }
+
+    if (!items.length) {
+      grid.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);grid-column:1/-1;">No images in media library. Click "Upload New Image" above!</div>';
       return;
     }
 
-    if (countBadge) countBadge.textContent = items.length + ' item' + (items.length === 1 ? '' : 's');
-
-    grid.innerHTML = '';
     let itemToSelect = null;
 
     items.forEach(item => {
       const card = document.createElement('div');
       card.className = 'media-modal-item';
       card.setAttribute('data-filename', item.filename.toLowerCase());
+      card.setAttribute('data-title', (item.title || '').toLowerCase());
+      card.setAttribute('data-alt', (item.alt_text || '').toLowerCase());
       card.innerHTML = `
         <div class="media-modal-item-thumb">
-          <img src="${item.admin_preview_url}" alt="${item.filename}" loading="lazy">
+          <img src="${item.admin_preview_url}" alt="${item.alt_text || item.title || item.filename}" loading="lazy">
         </div>
-        <p class="media-modal-item-name" title="${item.filename}">${item.filename}</p>
+        <p class="media-modal-item-name" title="${item.title || item.filename}">${item.title || item.filename}</p>
       `;
 
       card.addEventListener('click', function() {
@@ -237,27 +274,29 @@
     document.getElementById('media-sidebar-name').textContent = item.filename;
     document.getElementById('media-sidebar-meta').textContent = item.size_formatted + (item.dimensions ? ' • ' + item.dimensions : '') + ' • ' + item.date;
 
-    const altInput = document.getElementById('media-sidebar-alt');
-    const captionInput = document.getElementById('media-sidebar-caption');
+    document.getElementById('media-sidebar-title').value = item.title || '';
+    document.getElementById('media-sidebar-alt').value = item.alt_text || '';
+    document.getElementById('media-sidebar-caption').value = item.caption || '';
+    document.getElementById('media-sidebar-desc').value = item.description || '';
+
+    const baseNameNoExt = item.filename.substring(0, item.filename.lastIndexOf('.')) || item.filename;
+    document.getElementById('media-sidebar-rename-input').value = baseNameNoExt;
+    document.getElementById('media-sidebar-rename-status').style.display = 'none';
+    document.getElementById('media-sidebar-save-status').style.display = 'none';
+
     const captionGroup = document.getElementById('media-sidebar-caption-group');
     const captionBtn = document.getElementById('media-sidebar-insert-caption-btn');
     const insertBtn = document.getElementById('media-sidebar-insert-btn');
-    const altGroup = altInput ? altInput.closest('.form-group') : null;
-
-    altInput.value = '';
-    captionInput.value = '';
 
     const isSingleSelect = modalOptions.mode === 'select_single' || modalOptions.mode === 'cover_image' || typeof modalOptions.onSelect === 'function';
 
     if (isSingleSelect) {
       captionGroup.style.display = 'none';
       captionBtn.style.display = 'none';
-      if (altGroup) altGroup.style.display = 'none';
       insertBtn.textContent = modalOptions.selectButtonText || (modalOptions.mode === 'cover_image' ? 'Use as Cover Image' : 'Select This Image');
     } else {
       captionGroup.style.display = '';
       captionBtn.style.display = '';
-      if (altGroup) altGroup.style.display = '';
       insertBtn.textContent = 'Insert Image into Post';
     }
   }
@@ -268,7 +307,9 @@
     let visibleCount = 0;
     cards.forEach(card => {
       const filename = card.getAttribute('data-filename') || '';
-      if (!term || filename.includes(term)) {
+      const title = card.getAttribute('data-title') || '';
+      const alt = card.getAttribute('data-alt') || '';
+      if (!term || filename.includes(term) || title.includes(term) || alt.includes(term)) {
         card.style.display = '';
         visibleCount++;
       } else {
@@ -278,14 +319,99 @@
     if (countBadge) countBadge.textContent = visibleCount + ' item' + (visibleCount === 1 ? '' : 's');
   };
 
+  window.mediaModalSaveMetadata = function() {
+    if (!selectedMediaItem) return;
+    const btn = document.getElementById('media-sidebar-save-btn');
+    const statusEl = document.getElementById('media-sidebar-save-status');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const csrfToken = document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : '';
+    const payload = new FormData();
+    payload.append('action', 'update_meta');
+    payload.append('csrf_token', csrfToken);
+    payload.append('filename', selectedMediaItem.filename);
+    payload.append('title', document.getElementById('media-sidebar-title').value);
+    payload.append('alt_text', document.getElementById('media-sidebar-alt').value);
+    payload.append('caption', document.getElementById('media-sidebar-caption').value);
+    payload.append('description', document.getElementById('media-sidebar-desc').value);
+
+    fetch('media.php', { method: 'POST', body: payload })
+      .then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        btn.textContent = 'Save Details';
+        if (data && data.success) {
+          statusEl.style.display = 'inline';
+          statusEl.textContent = 'Saved!';
+          setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+
+          selectedMediaItem.title = data.title;
+          selectedMediaItem.alt_text = data.alt_text;
+          selectedMediaItem.caption = data.caption;
+          selectedMediaItem.description = data.description;
+        } else {
+          alert((data && data.error) ? data.error : 'Failed to save metadata.');
+        }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.textContent = 'Save Details';
+        alert('Error saving: ' + err.message);
+      });
+  };
+
+  window.mediaModalRenameFile = function() {
+    if (!selectedMediaItem) return;
+    const newName = (document.getElementById('media-sidebar-rename-input').value || '').trim();
+    if (!newName) {
+      alert('Please enter a new file name.');
+      return;
+    }
+
+    const statusEl = document.getElementById('media-sidebar-rename-status');
+    const csrfToken = document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : '';
+    const payload = new FormData();
+    payload.append('action', 'rename');
+    payload.append('csrf_token', csrfToken);
+    payload.append('old_filename', selectedMediaItem.filename);
+    payload.append('new_name', newName);
+
+    fetch('media.php', { method: 'POST', body: payload })
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.success) {
+          statusEl.style.display = 'block';
+          statusEl.style.color = '#2ed573';
+          statusEl.textContent = '✓ Renamed to ' + data.new_filename + ' & all website links updated!';
+          setTimeout(() => {
+            loadMediaLibraryList(data.new_filename);
+          }, 800);
+        } else {
+          statusEl.style.display = 'block';
+          statusEl.style.color = '#ff6b6b';
+          statusEl.textContent = 'Error: ' + ((data && data.error) ? data.error : 'Rename failed.');
+        }
+      })
+      .catch(err => {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        statusEl.textContent = 'Error: ' + err.message;
+      });
+  };
+
   window.mediaModalConfirmInsert = function(withCaption) {
     if (!selectedMediaItem) {
       alert('Please select an image first.');
       return;
     }
 
-    const alt = (document.getElementById('media-sidebar-alt').value || '').trim();
-    const caption = (document.getElementById('media-sidebar-caption').value || '').trim();
+    const alt = (document.getElementById('media-sidebar-alt').value || selectedMediaItem.alt_text || selectedMediaItem.title || '').trim();
+    const caption = (document.getElementById('media-sidebar-caption').value || selectedMediaItem.caption || '').trim();
+    const title = (document.getElementById('media-sidebar-title').value || selectedMediaItem.title || '').trim();
+
+    // Auto-save any typed changes
+    mediaModalSaveMetadata();
 
     // Custom onSelect callback
     if (typeof modalOptions.onSelect === 'function') {
@@ -293,6 +419,7 @@
         item: selectedMediaItem,
         url: selectedMediaItem.url,
         filename: selectedMediaItem.filename,
+        title: title,
         alt: alt,
         caption: caption,
         withCaption: withCaption
@@ -342,7 +469,6 @@
       textarea.selectionStart = textarea.selectionEnd = newPos;
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
-      // Also notify any inline tray helper if present
       if (window.onMediaImageInserted) {
         window.onMediaImageInserted(selectedMediaItem.url, selectedMediaItem.filename, selectedMediaItem.admin_preview_url);
       }
@@ -363,16 +489,6 @@
     });
   };
 
-  // Upload handler
-  window.mediaModalTriggerUpload = function() {
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      alert('Please choose an image file first.');
-      return;
-    }
-    const file = fileInput.files[0];
-    uploadMediaFile(file);
-  };
-
   function uploadMediaFile(file) {
     if (!file) return;
 
@@ -383,19 +499,19 @@
 
     showUploadStatus('Uploading "' + file.name + '"...', 'uploading');
 
-    // Get CSRF token from active page
     const csrfInput = document.querySelector('input[name="csrf_token"]');
     const token = csrfInput ? csrfInput.value : '';
 
     const formData = new FormData();
-    formData.append('media_file', file);
+    formData.append('action', 'upload');
     formData.append('csrf_token', token);
+    formData.append('media_file', file);
 
-    fetch('media.php?action=upload', {
+    fetch('media.php', {
       method: 'POST',
       body: formData,
-      credentials: 'same-origin',
       headers: {
+        'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': token
       }
     })
@@ -435,7 +551,6 @@
     }
   }
 
-  // Drag and drop onto dropzone
   if (dropzone) {
     ['dragenter', 'dragover'].forEach(evt => {
       dropzone.addEventListener(evt, e => {
@@ -456,7 +571,6 @@
     });
   }
 
-  // Direct change on file input triggers upload automatically for maximum ease
   if (fileInput) {
     fileInput.addEventListener('change', function() {
       if (fileInput.files && fileInput.files[0]) {

@@ -670,6 +670,256 @@ function ensure_clients_schema(PDO $pdo): void
     $stmt->execute([':k' => 'clients_schema_version', ':v' => '1', ':v2' => '1']);
 }
 
+// ------------------------------------------------------------
+// Media library metadata & rename management
+// ------------------------------------------------------------
+function ensure_media_schema(PDO $pdo): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+    $done = true;
+
+    $pdo->exec(
+        'CREATE TABLE IF NOT EXISTS media_items (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            filename VARCHAR(255) NOT NULL UNIQUE,
+            title VARCHAR(255) DEFAULT NULL,
+            alt_text VARCHAR(255) DEFAULT NULL,
+            caption TEXT DEFAULT NULL,
+            description TEXT DEFAULT NULL,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_filename (filename)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+    );
+}
+
+function get_all_media_items(?PDO $pdo = null): array
+{
+    if ($pdo === null) {
+        global $pdo;
+    }
+
+    $metaMap = [];
+    if ($pdo instanceof PDO) {
+        try {
+            ensure_media_schema($pdo);
+            $stmt = $pdo->query('SELECT filename, title, alt_text, caption, description FROM media_items');
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $metaMap[$row['filename']] = $row;
+            }
+        } catch (Throwable $e) {
+            // Proceed if database table is unavailable
+        }
+    }
+
+    if (!is_dir(UPLOAD_DIR)) {
+        return [];
+    }
+
+    $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'];
+    $files = scandir(UPLOAD_DIR);
+    $items = [];
+
+    foreach ($files as $file) {
+        if ($file === '.' || $file === '..' || str_starts_with($file, '.')) {
+            continue;
+        }
+        $fullPath = UPLOAD_DIR . $file;
+        if (!is_file($fullPath)) {
+            continue;
+        }
+        $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowedExts, true)) {
+            continue;
+        }
+
+        $sizeBytes = (int) filesize($fullPath);
+        $mtime = (int) filemtime($fullPath);
+
+        $dimensions = '';
+        if ($ext !== 'svg') {
+            $info = @getimagesize($fullPath);
+            if ($info && !empty($info[0]) && !empty($info[1])) {
+                $dimensions = $info[0] . ' × ' . $info[1] . ' px';
+            }
+        }
+
+        $sizeFormatted = $sizeBytes < 1024
+            ? $sizeBytes . ' B'
+            : ($sizeBytes < 1024 * 1024
+                ? round($sizeBytes / 1024, 1) . ' KB'
+                : round($sizeBytes / (1024 * 1024), 2) . ' MB');
+
+        $meta = $metaMap[$file] ?? null;
+        $cleanBaseName = ucwords(str_replace(['-', '_'], ' ', pathinfo($file, PATHINFO_FILENAME)));
+        $title = ($meta && !empty($meta['title'])) ? $meta['title'] : $cleanBaseName;
+        $altText = ($meta && isset($meta['alt_text'])) ? $meta['alt_text'] : '';
+        $caption = ($meta && isset($meta['caption'])) ? $meta['caption'] : '';
+        $description = ($meta && isset($meta['description'])) ? $meta['description'] : '';
+
+        $items[] = [
+            'filename' => $file,
+            'title' => $title,
+            'alt_text' => $altText,
+            'caption' => $caption,
+            'description' => $description,
+            'url' => 'uploads/' . $file,
+            'full_url' => UPLOAD_URL . $file,
+            'admin_preview_url' => '../uploads/' . $file,
+            'size' => $sizeBytes,
+            'size_formatted' => $sizeFormatted,
+            'mtime' => $mtime,
+            'date' => date('M j, Y', $mtime),
+            'dimensions' => $dimensions,
+            'ext' => $ext,
+        ];
+    }
+
+    usort($items, static fn($a, $b) => $b['mtime'] <=> $a['mtime']);
+    return $items;
+}
+
+function update_media_metadata(PDO $pdo, string $filename, array $data): bool
+{
+    ensure_media_schema($pdo);
+    $filename = basename(trim($filename));
+    if ($filename === '') {
+        return false;
+    }
+
+    $title = isset($data['title']) ? trim((string)$data['title']) : null;
+    $altText = isset($data['alt_text']) ? trim((string)$data['alt_text']) : null;
+    $caption = isset($data['caption']) ? trim((string)$data['caption']) : null;
+    $description = isset($data['description']) ? trim((string)$data['description']) : null;
+
+    $stmt = $pdo->prepare(
+        'INSERT INTO media_items (filename, title, alt_text, caption, description)
+         VALUES (:filename, :title, :alt_text, :caption, :description)
+         ON DUPLICATE KEY UPDATE
+            title = VALUES(title),
+            alt_text = VALUES(alt_text),
+            caption = VALUES(caption),
+            description = VALUES(description),
+            updated_at = NOW()'
+    );
+
+    return $stmt->execute([
+        ':filename' => $filename,
+        ':title' => $title,
+        ':alt_text' => $altText,
+        ':caption' => $caption,
+        ':description' => $description,
+    ]);
+}
+
+function rename_media_file(PDO $pdo, string $oldFilename, string $newDesiredName): array
+{
+    ensure_media_schema($pdo);
+    $oldFilename = basename(trim($oldFilename));
+    if ($oldFilename === '' || !is_file(UPLOAD_DIR . $oldFilename)) {
+        throw new RuntimeException('Original image file not found on server.');
+    }
+
+    $oldExt = strtolower(pathinfo($oldFilename, PATHINFO_EXTENSION));
+    $rawBase = pathinfo($newDesiredName, PATHINFO_FILENAME);
+    $slugBase = strtolower(trim(preg_replace('/[^a-zA-Z0-9\-_]+/', '-', $rawBase), '-'));
+    if ($slugBase === '') {
+        $slugBase = 'image-' . time();
+    }
+
+    $finalNewFilename = $slugBase . '.' . $oldExt;
+
+    if ($finalNewFilename === $oldFilename) {
+        return [
+            'success' => true,
+            'old_filename' => $oldFilename,
+            'new_filename' => $oldFilename,
+            'url' => 'uploads/' . $oldFilename,
+            'full_url' => UPLOAD_URL . $oldFilename,
+            'admin_preview_url' => '../uploads/' . $oldFilename,
+        ];
+    }
+
+    // Ensure unique target filename if needed
+    $counter = 1;
+    while (is_file(UPLOAD_DIR . $finalNewFilename) && $finalNewFilename !== $oldFilename) {
+        $finalNewFilename = $slugBase . '-' . $counter . '.' . $oldExt;
+        $counter++;
+    }
+
+    // 1. Rename on disk
+    if (!@rename(UPLOAD_DIR . $oldFilename, UPLOAD_DIR . $finalNewFilename)) {
+        throw new RuntimeException('Failed to rename file on disk.');
+    }
+
+    // 2. Update media_items table
+    $stmt = $pdo->prepare('UPDATE media_items SET filename = :new, updated_at = NOW() WHERE filename = :old');
+    $stmt->execute([':new' => $finalNewFilename, ':old' => $oldFilename]);
+
+    // 3. Cascade updates across all foreign image columns
+    $tablesAndCols = [
+        'projects' => ['cover_image'],
+        'blog_posts' => ['cover_image'],
+        'services' => ['cover_image'],
+        'products' => ['cover_image'],
+        'clients' => ['logo_image'],
+        'testimonials' => ['client_photo'],
+        'about_content' => ['profile_image', 'resume_file'],
+    ];
+
+    foreach ($tablesAndCols as $table => $cols) {
+        try {
+            foreach ($cols as $col) {
+                $stmt = $pdo->prepare("UPDATE {$table} SET {$col} = :new WHERE {$col} = :old");
+                $stmt->execute([':new' => $finalNewFilename, ':old' => $oldFilename]);
+            }
+        } catch (Throwable $e) {
+            // Skip non-existent tables or columns
+        }
+    }
+
+    // 4. Cascade updates in rich text HTML content
+    $richTextFields = [
+        'blog_posts' => 'body',
+        'projects' => 'description',
+        'services' => 'description',
+        'products' => 'description',
+    ];
+
+    foreach ($richTextFields as $table => $col) {
+        try {
+            $stmt = $pdo->prepare("UPDATE {$table} SET {$col} = REPLACE({$col}, :old, :new) WHERE {$col} LIKE :likeOld");
+            $stmt->execute([
+                ':old' => $oldFilename,
+                ':new' => $finalNewFilename,
+                ':likeOld' => '%' . $oldFilename . '%',
+            ]);
+        } catch (Throwable $e) {
+            // Ignore
+        }
+    }
+
+    // 5. Cascade site_settings table
+    try {
+        $stmt = $pdo->prepare("UPDATE site_settings SET setting_value = :new WHERE setting_value = :old");
+        $stmt->execute([':new' => $finalNewFilename, ':old' => $oldFilename]);
+    } catch (Throwable $e) {
+        // Ignore
+    }
+
+    return [
+        'success' => true,
+        'old_filename' => $oldFilename,
+        'new_filename' => $finalNewFilename,
+        'url' => 'uploads/' . $finalNewFilename,
+        'full_url' => UPLOAD_URL . $finalNewFilename,
+        'admin_preview_url' => '../uploads/' . $finalNewFilename,
+    ];
+}
+
 // Services feature helpers (schema migration, icons, card renderer)
 require_once __DIR__ . '/services-lib.php';
 
