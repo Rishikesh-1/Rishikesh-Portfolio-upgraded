@@ -161,7 +161,8 @@ require __DIR__ . '/includes/admin-header.php';
       <input type="file" name="resume_file" accept=".pdf">
       <div style="margin-top:8px;">
         <label style="font-size:0.82rem;color:var(--text-muted);">Button label on homepage</label>
-        <input type="text" name="resume_button_text" value="<?= e($settings['resume_button_text'] ?? 'Download CV') ?>" placeholder="Download CV" maxlength="60" style="margin-top:4px;">
+        <input type="text" name="resume_button_text" value="<?= e($settings['resume_button_text'] ?? 'View CV') ?>" placeholder="View CV" maxlength="60" style="margin-top:4px;">
+        <small style="color:var(--text-muted);font-size:0.75rem;display:block;margin-top:4px;">Opens interactive CV viewer modal with direct download and fullscreen buttons.</small>
       </div>
     </div>
     <div class="form-group">

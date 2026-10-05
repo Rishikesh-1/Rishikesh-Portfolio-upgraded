@@ -61,8 +61,17 @@ require __DIR__ . '/includes/header.php';
     <p class="hero-skill-line">Currently focused on <span data-skill-rotate data-skills="<?= e(json_encode($heroFocusOptions, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP)) ?>"><?= e($heroFocusOptions[0]) ?></span></p>
     <div class="hero-actions">
       <a href="#work" class="btn btn-primary">See my work</a>
-      <?php if (!empty($about['resume_file'])): ?>
-        <a href="<?= e(UPLOAD_URL . $about['resume_file']) ?>" class="btn btn-ghost" download><?= e(get_setting($pdo, 'resume_button_text', 'Download CV')) ?></a>
+      <?php if (!empty($about['resume_file'])): 
+        $cvButtonLabel = get_setting($pdo, 'resume_button_text', '');
+        if ($cvButtonLabel === '' || $cvButtonLabel === 'Download CV') {
+            $cvButtonLabel = 'View CV';
+        }
+        $cvFileUrl = UPLOAD_URL . $about['resume_file'];
+      ?>
+        <a href="<?= e($cvFileUrl) ?>" class="btn btn-ghost" data-cv-modal-open data-cv-url="<?= e($cvFileUrl) ?>" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;margin-right:6px;" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <?= e($cvButtonLabel) ?>
+        </a>
       <?php endif; ?>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>

@@ -245,7 +245,56 @@ document.addEventListener('DOMContentLoaded', function () {
     if (event.key === 'Escape') {
       var modal = document.getElementById('projectModal');
       if (modal) { modal.classList.remove('is-open'); modal.setAttribute('aria-hidden', 'true'); }
+      var cvModal = document.getElementById('cvModal');
+      if (cvModal && cvModal.classList.contains('is-open')) {
+        cvModal.classList.remove('is-open');
+        cvModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        var cvFrame = document.getElementById('cvModalFrame');
+        if (cvFrame) cvFrame.src = '';
+      }
     }
+  });
+
+  // CV Viewer Modal Controller
+  var cvModal = document.getElementById('cvModal');
+  var cvModalFrame = document.getElementById('cvModalFrame');
+  var cvModalDownloadBtn = document.getElementById('cvModalDownloadBtn');
+  var cvModalNewTabBtn = document.getElementById('cvModalNewTabBtn');
+
+  var openCvModal = function (url) {
+    if (!cvModal || !url) return;
+    if (cvModalFrame) cvModalFrame.src = url;
+    if (cvModalDownloadBtn) cvModalDownloadBtn.href = url;
+    if (cvModalNewTabBtn) cvModalNewTabBtn.href = url;
+
+    cvModal.classList.add('is-open');
+    cvModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  };
+
+  var closeCvModal = function () {
+    if (!cvModal) return;
+    cvModal.classList.remove('is-open');
+    cvModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    if (cvModalFrame) cvModalFrame.src = '';
+  };
+
+  document.querySelectorAll('[data-cv-modal-open]').forEach(function (button) {
+    button.addEventListener('click', function (e) {
+      if (e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault();
+        var url = button.getAttribute('data-cv-url') || button.getAttribute('href');
+        openCvModal(url);
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-cv-modal-close]').forEach(function (closeEl) {
+    closeEl.addEventListener('click', function () {
+      closeCvModal();
+    });
   });
 
   document.addEventListener('click', function (event) {
