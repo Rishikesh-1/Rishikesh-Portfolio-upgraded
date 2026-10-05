@@ -326,7 +326,9 @@
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
-    const csrfToken = document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      || document.querySelector('input[name="csrf_token"]')?.value
+      || '';
     const payload = new FormData();
     payload.append('action', 'update_meta');
     payload.append('csrf_token', csrfToken);
@@ -336,23 +338,38 @@
     payload.append('caption', document.getElementById('media-sidebar-caption').value);
     payload.append('description', document.getElementById('media-sidebar-desc').value);
 
-    fetch('media.php', { method: 'POST', body: payload })
-      .then(r => r.json())
+    fetch('media.php?action=update_meta', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: payload
+    })
+      .then(async (r) => {
+        const text = await r.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
+        }
+        if (!r.ok || !data.success) {
+          throw new Error((data && data.error) ? data.error : ('Request failed with status ' + r.status));
+        }
+        return data;
+      })
       .then(data => {
         btn.disabled = false;
         btn.textContent = 'Save Details';
-        if (data && data.success) {
-          statusEl.style.display = 'inline';
-          statusEl.textContent = 'Saved!';
-          setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
+        statusEl.style.display = 'inline';
+        statusEl.textContent = 'Saved!';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 2000);
 
-          selectedMediaItem.title = data.title;
-          selectedMediaItem.alt_text = data.alt_text;
-          selectedMediaItem.caption = data.caption;
-          selectedMediaItem.description = data.description;
-        } else {
-          alert((data && data.error) ? data.error : 'Failed to save metadata.');
-        }
+        selectedMediaItem.title = data.title;
+        selectedMediaItem.alt_text = data.alt_text;
+        selectedMediaItem.caption = data.caption;
+        selectedMediaItem.description = data.description;
       })
       .catch(err => {
         btn.disabled = false;
@@ -370,28 +387,43 @@
     }
 
     const statusEl = document.getElementById('media-sidebar-rename-status');
-    const csrfToken = document.querySelector('input[name="csrf_token"]') ? document.querySelector('input[name="csrf_token"]').value : '';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      || document.querySelector('input[name="csrf_token"]')?.value
+      || '';
     const payload = new FormData();
     payload.append('action', 'rename');
     payload.append('csrf_token', csrfToken);
     payload.append('old_filename', selectedMediaItem.filename);
     payload.append('new_name', newName);
 
-    fetch('media.php', { method: 'POST', body: payload })
-      .then(r => r.json())
-      .then(data => {
-        if (data && data.success) {
-          statusEl.style.display = 'block';
-          statusEl.style.color = '#2ed573';
-          statusEl.textContent = '✓ Renamed to ' + data.new_filename + ' & all website links updated!';
-          setTimeout(() => {
-            loadMediaLibraryList(data.new_filename);
-          }, 800);
-        } else {
-          statusEl.style.display = 'block';
-          statusEl.style.color = '#ff6b6b';
-          statusEl.textContent = 'Error: ' + ((data && data.error) ? data.error : 'Rename failed.');
+    fetch('media.php?action=rename', {
+      method: 'POST',
+      headers: {
+        'X-CSRF-TOKEN': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: payload
+    })
+      .then(async (r) => {
+        const text = await r.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
         }
+        if (!r.ok || !data.success) {
+          throw new Error((data && data.error) ? data.error : ('Rename failed with status ' + r.status));
+        }
+        return data;
+      })
+      .then(data => {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#2ed573';
+        statusEl.textContent = '✓ Renamed to ' + data.new_filename + ' & all website links updated!';
+        setTimeout(() => {
+          loadMediaLibraryList(data.new_filename);
+        }, 800);
       })
       .catch(err => {
         statusEl.style.display = 'block';
@@ -499,23 +531,36 @@
 
     showUploadStatus('Uploading "' + file.name + '"...', 'uploading');
 
-    const csrfInput = document.querySelector('input[name="csrf_token"]');
-    const token = csrfInput ? csrfInput.value : '';
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+      || document.querySelector('input[name="csrf_token"]')?.value
+      || '';
 
     const formData = new FormData();
     formData.append('action', 'upload');
     formData.append('csrf_token', token);
     formData.append('media_file', file);
 
-    fetch('media.php', {
+    fetch('media.php?action=upload', {
       method: 'POST',
       body: formData,
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': token
+        'X-CSRF-TOKEN': token
       }
     })
-    .then(res => res.json())
+    .then(async (res) => {
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Server upload error: ' + (text.substring(0, 100) || 'invalid response'));
+      }
+      if (!res.ok || !data.success) {
+        throw new Error((data && data.error) ? data.error : ('Upload failed with status ' + res.status));
+      }
+      return data;
+    })
     .then(data => {
       if (data && data.success && data.item) {
         showUploadStatus('✓ Successfully uploaded!', 'success');

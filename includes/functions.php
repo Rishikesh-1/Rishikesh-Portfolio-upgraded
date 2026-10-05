@@ -681,19 +681,22 @@ function ensure_media_schema(PDO $pdo): void
     }
     $done = true;
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS media_items (
-            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-            filename VARCHAR(255) NOT NULL UNIQUE,
-            title VARCHAR(255) DEFAULT NULL,
-            alt_text VARCHAR(255) DEFAULT NULL,
-            caption TEXT DEFAULT NULL,
-            description TEXT DEFAULT NULL,
-            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_filename (filename)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
-    );
+    try {
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS media_items (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                filename VARCHAR(255) NOT NULL UNIQUE,
+                title VARCHAR(255) DEFAULT NULL,
+                alt_text VARCHAR(255) DEFAULT NULL,
+                caption TEXT DEFAULT NULL,
+                description TEXT DEFAULT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+        );
+    } catch (Throwable $e) {
+        // Table or index might already exist or permission restricted
+    }
 }
 
 function get_all_media_items(?PDO $pdo = null): array
@@ -795,24 +798,29 @@ function update_media_metadata(PDO $pdo, string $filename, array $data): bool
     $caption = isset($data['caption']) ? trim((string)$data['caption']) : null;
     $description = isset($data['description']) ? trim((string)$data['description']) : null;
 
-    $stmt = $pdo->prepare(
-        'INSERT INTO media_items (filename, title, alt_text, caption, description)
-         VALUES (:filename, :title, :alt_text, :caption, :description)
-         ON DUPLICATE KEY UPDATE
-            title = VALUES(title),
-            alt_text = VALUES(alt_text),
-            caption = VALUES(caption),
-            description = VALUES(description),
-            updated_at = NOW()'
-    );
+    try {
+        $stmt = $pdo->prepare(
+            'INSERT INTO media_items (filename, title, alt_text, caption, description)
+             VALUES (:filename, :title, :alt_text, :caption, :description)
+             ON DUPLICATE KEY UPDATE
+                title = VALUES(title),
+                alt_text = VALUES(alt_text),
+                caption = VALUES(caption),
+                description = VALUES(description),
+                updated_at = NOW()'
+        );
 
-    return $stmt->execute([
-        ':filename' => $filename,
-        ':title' => $title,
-        ':alt_text' => $altText,
-        ':caption' => $caption,
-        ':description' => $description,
-    ]);
+        return $stmt->execute([
+            ':filename' => $filename,
+            ':title' => $title,
+            ':alt_text' => $altText,
+            ':caption' => $caption,
+            ':description' => $description,
+        ]);
+    } catch (Throwable $e) {
+        app_log_error('ERROR', 'update_media_metadata failed: ' . $e->getMessage(), $e->getFile(), $e->getLine());
+        return false;
+    }
 }
 
 function rename_media_file(PDO $pdo, string $oldFilename, string $newDesiredName): array

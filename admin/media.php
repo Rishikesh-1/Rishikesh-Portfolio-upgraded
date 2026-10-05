@@ -18,8 +18,14 @@ if ($action === 'list') {
     exit;
 }
 
-if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'upload') {
     header('Content-Type: application/json; charset=utf-8');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+        exit;
+    }
+
     $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         http_response_code(403);
@@ -96,8 +102,14 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($action === 'update_meta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'update_meta') {
     header('Content-Type: application/json; charset=utf-8');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+        exit;
+    }
+
     $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         http_response_code(403);
@@ -117,26 +129,38 @@ if ($action === 'update_meta' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $caption = trim($_POST['caption'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
-    update_media_metadata($pdo, $filename, [
-        'title' => $title,
-        'alt_text' => $altText,
-        'caption' => $caption,
-        'description' => $description,
-    ]);
+    try {
+        update_media_metadata($pdo, $filename, [
+            'title' => $title,
+            'alt_text' => $altText,
+            'caption' => $caption,
+            'description' => $description,
+        ]);
 
-    echo json_encode([
-        'success' => true,
-        'filename' => $filename,
-        'title' => $title,
-        'alt_text' => $altText,
-        'caption' => $caption,
-        'description' => $description,
-    ]);
+        echo json_encode([
+            'success' => true,
+            'filename' => $filename,
+            'title' => $title,
+            'alt_text' => $altText,
+            'caption' => $caption,
+            'description' => $description,
+        ]);
+    } catch (Throwable $e) {
+        app_log_error('ERROR', 'Media update_meta error: ' . $e->getMessage(), $e->getFile(), $e->getLine());
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Server error while updating image details.']);
+    }
     exit;
 }
 
-if ($action === 'rename' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'rename') {
     header('Content-Type: application/json; charset=utf-8');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+        exit;
+    }
+
     $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         http_response_code(403);
@@ -169,8 +193,14 @@ if ($action === 'rename' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-if ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($action === 'delete') {
     header('Content-Type: application/json; charset=utf-8');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'error' => 'Method Not Allowed']);
+        exit;
+    }
+
     $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if (empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
         http_response_code(403);
@@ -639,7 +669,9 @@ function saveDrawerMetadata() {
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    || document.querySelector('input[name="csrf_token"]')?.value
+    || '';
   const payload = new FormData();
   payload.append('action', 'update_meta');
   payload.append('csrf_token', csrfToken);
@@ -649,49 +681,71 @@ function saveDrawerMetadata() {
   payload.append('caption', document.getElementById('drawer-meta-caption').value);
   payload.append('description', document.getElementById('drawer-meta-desc').value);
 
-  fetch('media.php', { method: 'POST', body: payload })
-    .then(r => r.json())
+  fetch('media.php?action=update_meta', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: payload
+  })
+    .then(async (r) => {
+      const text = await r.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
+      }
+      if (!r.ok || !data.success) {
+        throw new Error((data && data.error) ? data.error : ('Request failed with status ' + r.status));
+      }
+      return data;
+    })
     .then(data => {
       btn.disabled = false;
       btn.textContent = 'Save Details';
-      if (data && data.success) {
-        const savedFilename = currentDrawerItem.filename;
 
-        // Update card attributes and DOM in the grid
-        const card = document.querySelector(`.media-library-card[data-filename="${savedFilename.toLowerCase()}"]`);
-        if (card) {
-          card.setAttribute('data-title', (data.title || '').toLowerCase());
-          card.setAttribute('data-alt', (data.alt_text || '').toLowerCase());
-          const titleEl = card.querySelector('.media-library-card-title');
-          if (titleEl) titleEl.textContent = data.title;
+      const savedFilename = currentDrawerItem.filename;
 
-          let altBadge = card.querySelector('.media-alt-badge');
-          if (data.alt_text) {
-            if (!altBadge) {
-              altBadge = document.createElement('span');
-              altBadge.className = 'media-alt-badge';
-              const bodyEl = card.querySelector('.media-library-card-body');
-              const metaEl = card.querySelector('.media-library-card-meta');
-              bodyEl.insertBefore(altBadge, metaEl);
-            }
-            altBadge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:11px;height:11px;" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Alt: ${escapeHtml(data.alt_text)}`;
-            altBadge.title = 'Alt: ' + data.alt_text;
-          } else if (altBadge) {
-            altBadge.remove();
+      // Update currentDrawerItem memory
+      currentDrawerItem.title = data.title;
+      currentDrawerItem.alt_text = data.alt_text;
+      currentDrawerItem.caption = data.caption;
+      currentDrawerItem.description = data.description;
+
+      // Update card attributes and DOM in the grid
+      const card = document.querySelector(`.media-library-card[data-filename="${savedFilename.toLowerCase()}"]`);
+      if (card) {
+        card.setAttribute('data-title', (data.title || '').toLowerCase());
+        card.setAttribute('data-alt', (data.alt_text || '').toLowerCase());
+        const titleEl = card.querySelector('.media-library-card-title');
+        if (titleEl) titleEl.textContent = data.title;
+
+        let altBadge = card.querySelector('.media-alt-badge');
+        if (data.alt_text) {
+          if (!altBadge) {
+            altBadge = document.createElement('span');
+            altBadge.className = 'media-alt-badge';
+            const bodyEl = card.querySelector('.media-library-card-body');
+            const metaEl = card.querySelector('.media-library-card-meta');
+            bodyEl.insertBefore(altBadge, metaEl);
           }
+          altBadge.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:11px;height:11px;" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Alt: ${escapeHtml(data.alt_text)}`;
+          altBadge.title = 'Alt: ' + data.alt_text;
+        } else if (altBadge) {
+          altBadge.remove();
         }
-
-        // Close drawer and display success toast notification
-        closeMediaDrawer();
-        showMediaToast('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved successfully!');
-      } else {
-        alert((data && data.error) ? data.error : 'Failed to save changes.');
       }
+
+      // Close drawer and display success toast notification
+      closeMediaDrawer();
+      showMediaToast('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Saved successfully!');
     })
     .catch(err => {
       btn.disabled = false;
       btn.textContent = 'Save Details';
-      alert('Network error while saving: ' + err.message);
+      alert('Error saving: ' + err.message);
     });
 }
 
@@ -709,32 +763,47 @@ function renameDrawerFile() {
   btn.textContent = 'Renaming...';
   statusEl.style.display = 'none';
 
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    || document.querySelector('input[name="csrf_token"]')?.value
+    || '';
   const payload = new FormData();
   payload.append('action', 'rename');
   payload.append('csrf_token', csrfToken);
   payload.append('old_filename', currentDrawerItem.filename);
   payload.append('new_name', newName);
 
-  fetch('media.php', { method: 'POST', body: payload })
-    .then(r => r.json())
+  fetch('media.php?action=rename', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: payload
+  })
+    .then(async (r) => {
+      const text = await r.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
+      }
+      if (!r.ok || !data.success) {
+        throw new Error((data && data.error) ? data.error : ('Request failed with status ' + r.status));
+      }
+      return data;
+    })
     .then(data => {
       btn.disabled = false;
       btn.textContent = 'Rename File';
-      if (data && data.success) {
-        statusEl.style.display = 'block';
-        statusEl.style.color = '#2ed573';
-        statusEl.textContent = '✓ Renamed to ' + data.new_filename + ' & all website links updated!';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#2ed573';
+      statusEl.textContent = '✓ Renamed to ' + data.new_filename + ' & all website links updated!';
 
-        // Reload page shortly to refresh all grid cards smoothly
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      } else {
-        statusEl.style.display = 'block';
-        statusEl.style.color = '#ff6b6b';
-        statusEl.textContent = 'Error: ' + ((data && data.error) ? data.error : 'Rename failed.');
-      }
+      // Reload page shortly to refresh all grid cards smoothly
+      setTimeout(() => {
+        window.location.reload();
+      }, 800);
     })
     .catch(err => {
       btn.disabled = false;
@@ -749,21 +818,38 @@ function deleteDrawerFile() {
   if (!currentDrawerItem) return;
   if (!confirm(`Are you sure you want to permanently delete "${currentDrawerItem.filename}"?`)) return;
 
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    || document.querySelector('input[name="csrf_token"]')?.value
+    || '';
   const payload = new FormData();
   payload.append('action', 'delete');
   payload.append('csrf_token', csrfToken);
   payload.append('filename', currentDrawerItem.filename);
 
-  fetch('media.php', { method: 'POST', body: payload })
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.success) {
-        closeMediaDrawer();
-        window.location.reload();
-      } else {
-        alert((data && data.error) ? data.error : 'Could not delete file.');
+  fetch('media.php?action=delete', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: payload
+  })
+    .then(async (r) => {
+      const text = await r.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
       }
+      if (!r.ok || !data.success) {
+        throw new Error((data && data.error) ? data.error : ('Delete failed with status ' + r.status));
+      }
+      return data;
+    })
+    .then(data => {
+      closeMediaDrawer();
+      window.location.reload();
     })
     .catch(err => {
       alert('Error deleting: ' + err.message);
@@ -772,20 +858,37 @@ function deleteDrawerFile() {
 
 function deleteMediaFromGrid(filename) {
   if (!confirm(`Permanently delete "${filename}"?`)) return;
-  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+    || document.querySelector('input[name="csrf_token"]')?.value
+    || '';
   const payload = new FormData();
   payload.append('action', 'delete');
   payload.append('csrf_token', csrfToken);
   payload.append('filename', filename);
 
-  fetch('media.php', { method: 'POST', body: payload })
-    .then(r => r.json())
-    .then(data => {
-      if (data && data.success) {
-        window.location.reload();
-      } else {
-        alert((data && data.error) ? data.error : 'Could not delete file.');
+  fetch('media.php?action=delete', {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: payload
+  })
+    .then(async (r) => {
+      const text = await r.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        throw new Error('Server error: ' + (text.substring(0, 100) || 'empty response'));
       }
+      if (!r.ok || !data.success) {
+        throw new Error((data && data.error) ? data.error : ('Delete failed with status ' + r.status));
+      }
+      return data;
+    })
+    .then(data => {
+      window.location.reload();
     })
     .catch(err => {
       alert('Error: ' + err.message);
