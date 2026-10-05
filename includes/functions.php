@@ -461,9 +461,16 @@ function handle_image_upload(array $file, string $fieldNameForError = 'image'): 
         throw new RuntimeException('File is too large. Max size is ' . (MAX_UPLOAD_BYTES / 1024 / 1024) . 'MB.');
     }
 
+    $allowedExts = defined('ALLOWED_IMAGE_EXTS') && is_array(ALLOWED_IMAGE_EXTS)
+        ? array_unique(array_merge(ALLOWED_IMAGE_EXTS, ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif']))
+        : ['jpg', 'jpeg', 'png', 'webp', 'svg', 'gif'];
+    $allowedTypes = defined('ALLOWED_IMAGE_TYPES') && is_array(ALLOWED_IMAGE_TYPES)
+        ? array_unique(array_merge(ALLOWED_IMAGE_TYPES, ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/svg', 'image/gif', 'image/pjpeg', 'image/x-png', 'image/jpg']))
+        : ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/svg', 'image/gif'];
+
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if (!in_array($ext, ALLOWED_IMAGE_EXTS, true)) {
-        throw new RuntimeException('Invalid file extension.');
+    if (!in_array($ext, $allowedExts, true)) {
+        throw new RuntimeException('Invalid file extension. Allowed formats: JPG, PNG, WEBP, SVG, GIF.');
     }
 
     if ($ext === 'svg') {
@@ -500,8 +507,8 @@ function handle_image_upload(array $file, string $fieldNameForError = 'image'): 
             $imageInfo = @getimagesize($file['tmp_name']);
             $mime = $imageInfo['mime'] ?? '';
         }
-        if (!in_array($mime, ALLOWED_IMAGE_TYPES, true)) {
-            throw new RuntimeException('Invalid file type. Only JPG, PNG, WEBP, and SVG are allowed.');
+        if (!in_array($mime, $allowedTypes, true)) {
+            throw new RuntimeException('Invalid file type. Only JPG, PNG, WEBP, SVG, and GIF are allowed.');
         }
 
         // Extra safety: verify it decodes as a real image (blocks polyglot files).
